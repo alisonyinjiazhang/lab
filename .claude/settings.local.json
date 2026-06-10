@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(open *)",
+      "WebFetch(domain:mybrentano.ch)",
+      "Bash(curl -s \"https://mybrentano.ch/\")",
+      "Bash(curl -s \"https://mybrentano.ch/css/app.9d7695af.css\")",
+      "Bash(curl -s \"https://mybrentano.ch/fonts/StudioFeixenSans-WriterBook.16007e97.woff2\" -o /Users/yinjiazhang/Desktop/lab/fonts/StudioFeixenSans-WriterBook.woff2)",
+      "Bash(curl -s \"https://mybrentano.ch/fonts/StudioFeixenSans-WriterBook.b7ebf0fa.woff\" -o /Users/yinjiazhang/Desktop/lab/fonts/StudioFeixenSans-WriterBook.woff)",
+      "Bash(curl -s \"https://mybrentano.ch/fonts/StudioFeixenSans-Book.44a63284.woff2\" -o /Users/yinjiazhang/Desktop/lab/fonts/StudioFeixenSans-Book.woff2)",
+      "Bash(file *)",
+      "Bash(python3 *)",
+      "Bash(osascript *)",
+      "Bash(mdfind *)",
+      "Bash(ditto \"/Users/yinjiazhang/Desktop/PROCESS fortune teller app pics/Screenshot 2026-05-13 at 5.40.07 PM.png\" \"/Users/yinjiazhang/Desktop/lab/fortune-teller-thumb.png\")",
+      "Bash(npm create *)",
+      "Bash(npm install *)",
+      "Bash(sudo chmod -R u+w /Users/yinjiazhang/.npm/_cacache)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(gh repo *)",
+      "Bash(git remote *)",
+      "Bash(gh api *)",
+      "Bash(git push *)",
+      "Bash(git revert *)",
+      "Bash(cp \"/Users/yinjiazhang/Desktop/Screenshot 2026-06-10 at 2.25.06 PM.png\" \"/Users/yinjiazhang/Desktop/lab/chord-game.png\")",
+      "Bash(cp \"/Users/yinjiazhang/Desktop/Screenshot 2026-06-10 at 3.41.28 PM.png\" \"/Users/yinjiazhang/Desktop/lab/afterlife.png\")",
+      "WebSearch",
+      "WebFetch(domain:alisonyinjiazhang.github.io)"
+    ]
+  }
+}

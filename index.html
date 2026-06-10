@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alison Zhang</title>
+  <style>
+    /* ── Exact fonts from mybrentano.ch ── */
+    @font-face {
+      font-family: 'Studio Feixen Sans Writer Book';
+      src: url('fonts/StudioFeixenSans-WriterBook.woff2') format('woff2'),
+           url('fonts/StudioFeixenSans-WriterBook.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Studio Feixen Sans Book';
+      src: url('fonts/StudioFeixenSans-Book.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Root: 62.5% so 1rem = 10px — exact Brentano value ── */
+    html {
+      font-size: 62.5%;
+      min-height: 100vh;
+      scroll-behavior: smooth;
+    }
+
+    /* ── Body — exact Brentano values ── */
+    body {
+      font-family: 'Studio Feixen Sans Writer Book', sans-serif;
+      font-size: 1.6rem;    /* 16px default */
+      font-weight: 400;
+      line-height: 1.1875;
+      color: #212529;
+      background-color: #F5F5F7;
+    }
+
+    /* Desktop body override — exact Brentano: 25px / 30px */
+    @media (min-width: 860px) {
+      body { font-size: 25px; line-height: 30px; }
+    }
+
+    /* ── Site shell ── */
+    .site {
+      display: grid;
+      grid-template-rows: auto auto auto 1fr;
+      min-height: 100vh;
+    }
+
+    /* ════════════════════════════════
+       NAV ROW 1
+       Nav brand: 1.8rem = 18px (Brentano navbar-brand)
+    ════════════════════════════════ */
+    .nav-primary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #000;
+      padding: 10px 20px;
+    }
+
+    .nav-brand {
+      font-size: 1.8rem;   /* 18px */
+      font-weight: 400;
+      line-height: 1;
+      color: #212529;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .nav-action {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      font-size: 1.4rem;   /* 14px */
+      color: #212529;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .nav-action:hover { color: #6c757d; }
+
+    .icon-circle {
+      width: 22px; height: 22px;
+      border: 1px solid #000;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    /* ════════════════════════════════
+       NAV ROW 2
+    ════════════════════════════════ */
+    .nav-secondary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #000;
+      padding: 9px 20px;
+    }
+
+    .nav-tagline {
+      font-size: 1.4rem;   /* 14px */
+      color: #6c757d;
+      line-height: 1.1875;
+    }
+
+    .nav-ext {
+      font-size: 1.4rem;
+      color: #6c757d;
+      cursor: pointer;
+    }
+    .nav-ext:hover { color: #212529; }
+
+    /* ════════════════════════════════
+       TAB BAR
+       .type: font-size 14px; line-height 20px; border-bottom 1px solid #000
+    ════════════════════════════════ */
+    .tab-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      border-bottom: 1px solid #000;
+    }
+
+    .tab {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 9px 20px;
+      font-size: 1.4rem;   /* 14px */
+      line-height: 20px;
+      color: #6c757d;
+      cursor: pointer;
+      user-select: none;
+    }
+    #tab-about, #tab-projects { border-right: 1px solid #000; }
+    .tab.active, .tab:hover { color: #212529; }
+
+    .tab-end {
+      padding: 9px 14px;
+      display: flex; align-items: center;
+      border-left: 1px solid #000;
+      color: #6c757d;
+      cursor: pointer;
+    }
+    .tab-end:hover { color: #212529; }
+
+    /* ════════════════════════════════
+       MAIN — two columns
+    ════════════════════════════════ */
+    .main {
+      display: grid;
+      grid-template-columns: 36% 64%;
+    }
+
+    /* ── LEFT: Bio ── */
+    .bio-panel {
+      border-right: 1px solid #000;
+      padding: 40px 28px 56px;
+      display: flex;
+      flex-direction: column;
+      scroll-margin-top: 12px;
+      outline: none;
+    }
+
+    /* Eyebrow: .text-sm smallest = 10px/11px */
+    .bio-eyebrow {
+      font-size: 1.0rem;   /* 10px */
+      line-height: 11px;
+      color: #6c757d;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 24px;
+    }
+
+    /* Name: .text-xl-max = 40px/44px */
+    .bio-name {
+      font-size: 40px;
+      line-height: 44px;
+      font-weight: 400;
+      color: #212529;
+      margin-bottom: 28px;
+    }
+
+    /* Body: 24px / 38px — large statement size, near golden ratio */
+    .bio-body {
+      font-size: 24px;
+      line-height: 38px;
+      font-weight: 400;
+      color: #212529;
+      margin-bottom: 32px;
+    }
+
+    /* Tags — 24px border-radius (exact Brentano pill) */
+    .bio-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: auto;
+      padding-bottom: 40px;
+    }
+
+    .bio-tag {
+      border: 1px solid #000;
+      border-radius: 24px;
+      padding: 4px 14px;
+      font-size: 1.1rem;   /* 11px */
+      line-height: 13px;
+      color: #6c757d;
+    }
+
+    /* Links */
+    .bio-links {
+      display: flex;
+      gap: 18px;
+      padding-top: 24px;
+      border-top: 1px solid #000;
+    }
+
+    .bio-link {
+      font-size: 1.0rem;
+      line-height: 11px;
+      color: #6c757d;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .bio-link:hover { color: #212529; }
+
+    /* ── RIGHT: Projects ── */
+    .projects-panel {
+      padding: 24px 20px 56px;
+      overflow-y: auto;
+      scroll-margin-top: 12px;
+      outline: none;
+      transition: background-color 0.3s;
+    }
+    .projects-panel.focused {
+      background-color: #fff;
+    }
+
+    .projects-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .projects-label {
+      font-size: 1.0rem;   /* 10px */
+      line-height: 11px;
+      color: #6c757d;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .projects-count {
+      font-size: 1.0rem;
+      color: #6c757d;
+    }
+
+    /* ── Grid: collapsed borders like Brentano product grid ── */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Card: no padding, content fills edge-to-edge like Brentano */
+    .project-card {
+      border: 1px solid #000;
+      margin-right: -1px;
+      margin-bottom: -1px;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      background: #fff;
+      transition: background 0.1s;
+      overflow: hidden;
+    }
+    .project-card:hover { background: #f8f8f8; }
+
+    /* Top header row: name left, number right */
+    .card-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      padding: 8px 10px 7px;
+      border-bottom: 1px solid #000;
+    }
+
+    /* Card name: .text-base = 16px/17px */
+    .card-name {
+      font-size: 1.6rem;
+      line-height: 17px;
+      color: #212529;
+    }
+
+    /* Card number: 10px / 11px like product version numbers */
+    .card-num {
+      font-size: 1.0rem;
+      line-height: 11px;
+      color: #6c757d;
+      flex-shrink: 0;
+    }
+
+    /* Large image area — fills middle of card, like product image */
+    .card-image {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+      background: #f5f5f5;
+      border-bottom: 1px solid #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+    }
+    .card-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top;
+      display: block;
+    }
+
+    /* Bottom footer row: desc left, arrow right */
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 10px;
+    }
+
+    /* Stack / desc label: 11px */
+    .card-desc {
+      font-size: 1.1rem;
+      line-height: 13px;
+      color: #6c757d;
+    }
+
+    /* Placeholder */
+    .project-card.placeholder {
+      cursor: default;
+      min-height: 220px;
+    }
+    .project-card.placeholder .card-image {
+      flex: 1;
+      border-bottom: none;
+      opacity: 0.3;
+    }
+    .project-card.placeholder:hover { background: #fff; }
+
+    /* ── Work panel (password-protected) ── */
+    .work-panel {
+      display: none;
+      flex-direction: column;
+      padding: 24px 20px 56px;
+      grid-column: 2;
+    }
+
+/* ── Responsive ── */
+    @media (max-width: 700px) {
+      .main { grid-template-columns: 1fr; }
+      .bio-panel { border-right: none; border-bottom: 1px solid #000; }
+      .projects-grid { grid-template-columns: 1fr; }
+      .bio-body { font-size: 1.6rem; line-height: 1.6; }
+    }
+  </style>
+</head>
+<body>
+<div class="site">
+
+  <!-- Nav 1 -->
+  <nav class="nav-primary">
+    <span class="nav-brand">Hello. I make things.</span>
+    <a class="nav-action" href="mailto:visualrockshock@gmail.com">
+      <span>Get in touch</span>
+      <span class="icon-circle">→</span>
+    </a>
+  </nav>
+
+  <!-- Nav 2 -->
+  <div class="nav-secondary">
+    <span class="nav-tagline">Product designer · design engineer · previously Chase, Coach, BitGo, Bloomberg</span>
+    <span class="nav-ext">↗</span>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <div class="tab active" id="tab-about" role="button" tabindex="0">
+      <span>About</span>
+      <span class="icon-circle" style="width:16px;height:16px;font-size:1rem;">⊕</span>
+    </div>
+    <div class="tab" id="tab-projects" role="button" tabindex="0">
+      <span>⊙</span>
+      <span>Projects</span>
+    </div>
+    <div class="tab" id="tab-work" role="button" tabindex="0">
+      <span>⊙</span>
+      <span>Work</span>
+    </div>
+    <div class="tab-end" id="tab-scroll" role="button" tabindex="0" aria-label="Scroll to projects">↓</div>
+  </div>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Left: Bio -->
+    <section class="bio-panel" id="bio-panel" tabindex="-1">
+      <p class="bio-eyebrow">Introduction</p>
+      <h1 class="bio-name">Alison Zhang</h1>
+      <p class="bio-body">
+        For the past eight years I've worked in product design at Chase, Coach, and BitGo. By combining product strategy, design aesthetics, and front-end execution, I produce apps with complete product lifecycle from concept to deployment now with deep domain knowledge in Finance and E-commerce.
+        <br/><br/>
+        Growing up in the 90s shaped a visual style that balances tech brutalism with minimalist design. I am drawn to the clean lines of early digital iPod interfaces, bringing that same tactile precision into contemporary web environments through stark layouts and intentional micro-interactions.
+        <br/><br/>
+        Outside of work, I make music.
+      </p>
+      <div class="bio-tags">
+        <span class="bio-tag">Product Design</span>
+        <span class="bio-tag">Design Engineering</span>
+        <span class="bio-tag">Neo-Brutalism</span>
+        <span class="bio-tag">Vibe Coding</span>
+        <span class="bio-tag">CSS</span>
+      </div>
+      <div class="bio-links">
+        <a class="bio-link" href="https://www.linkedin.com/in/yzalison/" target="_blank">LinkedIn ↗</a>
+        <a class="bio-link" href="https://dribbble.com/corlenka" target="_blank">Dribbble ↗</a>
+      </div>
+    </section>
+
+    <!-- Right: Projects -->
+    <section class="projects-panel" id="projects-panel" tabindex="-1">
+      <div class="projects-header" id="vibe-coding-projects">
+        <span class="projects-label">Vibe Coding Projects</span>
+        <span class="projects-count">0 — 4</span>
+      </div>
+      <div class="projects-grid">
+        <a class="project-card" href="https://alisonyinjiazhang.github.io/cost-of-living/" target="_blank" style="text-decoration:none;color:inherit;">
+          <div class="card-header">
+            <span class="card-name">Cost of Living</span>
+            <span class="card-num">Web</span>
+          </div>
+          <div class="card-image">
+            <img src="cost-of-living.png" alt="City Cost of Living Calculator" />
+          </div>
+          <div class="card-footer">
+            <span class="card-desc">Finance · Cities</span>
+            <span>↗</span>
+          </div>
+        </a>
+
+        <!-- Card 2: Fortune Teller -->
+        <a class="project-card" href="https://alisonyinjiazhang.github.io/fortune-telling-app/" target="_blank" style="text-decoration:none;color:inherit;">
+          <div class="card-header">
+            <span class="card-name">Fortune Teller</span>
+            <span class="card-num">Web</span>
+          </div>
+          <div class="card-image">
+            <img src="tarrot.png" alt="Fortune Teller" />
+          </div>
+          <div class="card-footer">
+            <span class="card-desc">Tarot · Astrology</span>
+            <span>↗</span>
+          </div>
+        </a>
+
+        <!-- Card 3: Chord Game -->
+        <a class="project-card" href="https://alisonyinjiazhang.github.io/chord-game/" target="_blank" style="text-decoration:none;color:inherit;">
+          <div class="card-header">
+            <span class="card-name">Chord Game</span>
+            <span class="card-num">Game</span>
+          </div>
+          <div class="card-image">
+            <img src="chord-game.png" alt="Chord Game" />
+          </div>
+          <div class="card-footer">
+            <span class="card-desc">Music · Game</span>
+            <span>↗</span>
+          </div>
+        </a>
+
+        <!-- Card 4: AfterLife -->
+        <a class="project-card" href="https://alisonyinjiazhang.github.io/afterlife/" target="_blank" style="text-decoration:none;color:inherit;">
+          <div class="card-header">
+            <span class="card-name">AfterLife</span>
+            <span class="card-num">Web</span>
+          </div>
+          <div class="card-image">
+            <img src="afterlife.png" alt="AfterLife" />
+          </div>
+          <div class="card-footer">
+            <span class="card-desc">Estate · Planning</span>
+            <span>↗</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Right: Corporate Work (password protected) -->
+    <section class="work-panel" id="work-panel">
+
+      <div id="work-unlocked">
+        <div class="projects-header">
+          <span class="projects-label">Corporate Work</span>
+          <span class="projects-count">0 — 4</span>
+        </div>
+        <div class="projects-grid">
+
+          <a class="project-card" href="https://www.figma.com/proto/4MNoAdQHzC0IxiTSWb6w65/BitGo?page-id=&node-id=1-11575&viewport=1254%2C491%2C0.06&t=QxLMqzr14ycNJWtu-1&scaling=scale-down&content-scaling=fixed" target="_blank" style="text-decoration:none;color:inherit;">
+            <div class="card-header">
+              <span class="card-name">BitGo</span>
+              <span class="card-num">Web</span>
+            </div>
+            <div class="card-image">
+              <img src="https://alisonyinjiazhang.github.io/work/bit.png" alt="BitGo Developer Portal" />
+            </div>
+            <div class="card-footer">
+              <span class="card-desc">Fintech · Developer Portal</span>
+              <span>↗</span>
+            </div>
+          </a>
+
+          <a class="project-card" href="https://www.figma.com/proto/4MNoAdQHzC0IxiTSWb6w65/work?page-id=479%3A1397&node-id=479-78377&viewport=-941%2C79%2C0.04&t=tJkNSQCAnAchAqjt-1&scaling=scale-down&content-scaling=fixed&starting-point-node-id=479%3A78377" target="_blank" style="text-decoration:none;color:inherit;">
+            <div class="card-header">
+              <span class="card-name">Chase</span>
+              <span class="card-num">Web, Mobile</span>
+            </div>
+            <div class="card-image" style="background:#000;">
+              <img src="https://alisonyinjiazhang.github.io/work/1.gif" alt="Chase Wealth Plan" style="object-fit:contain;object-position:center;" />
+            </div>
+            <div class="card-footer">
+              <span class="card-desc">Finance · Wealth</span>
+              <span>↗</span>
+            </div>
+          </a>
+
+          <a class="project-card" href="https://www.figma.com/proto/4MNoAdQHzC0IxiTSWb6w65/work?page-id=479%3A102095&node-id=479-102138&viewport=135%2C168%2C0.06&t=U1dgMK7S3LmmPszC-1&scaling=contain&content-scaling=fixed" target="_blank" style="text-decoration:none;color:inherit;">
+            <div class="card-header">
+              <span class="card-name">Coach</span>
+              <span class="card-num">Web, Mobile</span>
+            </div>
+            <div class="card-image">
+              <img src="https://alisonyinjiazhang.github.io/work/coach.png" alt="Coach E-commerce" />
+            </div>
+            <div class="card-footer">
+              <span class="card-desc">E-commerce · Shopping</span>
+              <span>↗</span>
+            </div>
+          </a>
+
+          <a class="project-card" href="https://www.figma.com/proto/4MNoAdQHzC0IxiTSWb6w65/work?page-id=485%3A102683&node-id=485-102723&viewport=185%2C211%2C0.05&t=rvQytpfHLBBaAw7j-1&scaling=scale-down&content-scaling=fixed" target="_blank" style="text-decoration:none;color:inherit;">
+            <div class="card-header">
+              <span class="card-name">Capital One</span>
+              <span class="card-num">Web</span>
+            </div>
+            <div class="card-image">
+              <img src="https://alisonyinjiazhang.github.io/work/c1.png" alt="Capital One L&D" />
+            </div>
+            <div class="card-footer">
+              <span class="card-desc">Fintech · L&D</span>
+              <span>↗</span>
+            </div>
+          </a>
+
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+</div>
+<script>
+  const tabAbout    = document.getElementById('tab-about');
+  const tabProjects = document.getElementById('tab-projects');
+  const tabWork     = document.getElementById('tab-work');
+  const tabScroll   = document.getElementById('tab-scroll');
+  const bioPanel       = document.getElementById('bio-panel');
+  const projectsPanel  = document.getElementById('projects-panel');
+  const workPanel      = document.getElementById('work-panel');
+  const workUnlocked   = document.getElementById('work-unlocked');
+  const projectsHeader = document.getElementById('vibe-coding-projects');
+
+  function setActiveTab(active) {
+    tabAbout.classList.toggle('active', active === 'about');
+    tabProjects.classList.toggle('active', active === 'projects');
+    tabWork.classList.toggle('active', active === 'work');
+    projectsPanel.classList.toggle('focused', active === 'projects');
+
+    if (active === 'work') {
+      projectsPanel.style.display = 'none';
+      workPanel.style.display = 'flex';
+    } else {
+      projectsPanel.style.display = '';
+      workPanel.style.display = 'none';
+    }
+  }
+
+  function focusProjects() {
+    setActiveTab('projects');
+    projectsPanel.scrollTop = 0;
+    projectsHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    projectsPanel.focus({ preventScroll: true });
+  }
+
+  function focusAbout() {
+    setActiveTab('about');
+    bioPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    bioPanel.focus({ preventScroll: true });
+  }
+
+  function focusWork() {
+    setActiveTab('work');
+  }
+
+  tabProjects.addEventListener('click', focusProjects);
+  tabScroll.addEventListener('click', focusProjects);
+  tabAbout.addEventListener('click', focusAbout);
+  tabWork.addEventListener('click', focusWork);
+
+  [tabAbout, tabProjects, tabWork, tabScroll].forEach(el => {
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        el.click();
+      }
+    });
+  });
+</script>
+</body>
+</html>
