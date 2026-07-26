@@ -475,7 +475,7 @@
       <span>About</span>
       <span class="icon-circle" style="width:16px;height:16px;font-size:1rem;">⊕</span>
     </div>
-    <div class="tab-end" id="tab-scroll" role="button" tabindex="0" aria-label="Scroll to projects">↓</div>
+    <div class="tab-end" id="tab-scroll" role="button" tabindex="0" aria-label="Scroll down">↓</div>
   </div>
 
   <!-- Main -->
@@ -700,7 +700,9 @@
   setActiveTab('work');
 
   tabProjects.addEventListener('click', focusProjects);
-  tabScroll.addEventListener('click', focusProjects);
+  tabScroll.addEventListener('click', () => {
+    window.scrollBy({ top: Math.min(window.innerHeight * 0.85, document.documentElement.scrollHeight - window.scrollY), behavior: 'smooth' });
+  });
   tabAbout.addEventListener('click', focusAbout);
   tabWork.addEventListener('click', focusWork);
 
