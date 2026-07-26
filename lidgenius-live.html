@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LidGenius — Wire &amp; Ion</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: #e8e7df;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      color: #000;
+    }
+
+    .stage {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+    }
+
+    .phone {
+      position: relative;
+      width: min(430px, 100vw);
+      height: min(932px, 100dvh);
+      background: #f4f4ea;
+      border-radius: 24px;
+      border: 1px solid #d1d5db;
+      box-shadow: 1px 5px 12px rgba(16, 24, 32, 0.16);
+      overflow: hidden;
+    }
+
+    #wire-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* ── Persistent status bar, shown on every screen ── */
+    .status {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 44px;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 21px;
+      color: #111827;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+      pointer-events: none;
+    }
+    .status.on-dark { color: #fff; }
+    .status.on-dark svg { fill: #fff !important; }
+    .status-icons { display: flex; align-items: center; gap: 7px; opacity: 0.9; }
+
+    .home-bar {
+      position: absolute;
+      left: 50%;
+      bottom: 8px;
+      transform: translateX(-50%);
+      width: 135px;
+      height: 5px;
+      border-radius: 100px;
+      background: #000;
+      z-index: 20;
+      pointer-events: none;
+    }
+    .screen.on-dark .home-bar { background: #fff; }
+
+    .back-lab {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 30;
+      color: #101820;
+      text-decoration: none;
+      font-size: 14px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+    .back-lab:hover { opacity: 1; }
+
+    /* ── Screens ── */
+    .screen {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      display: none;
+      flex-direction: column;
+      background: #F4F4EA;
+    }
+    .screen.active { display: flex; }
+    .screen.transparent-bg { background: transparent; }
+    .screen.dark { background: #1D1414; }
+
+    .screen-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 58px 16px 16px;
+      flex-shrink: 0;
+    }
+    .screen-header .back-btn {
+      width: 24px; height: 24px;
+      border: none; background: none;
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+      color: #101820;
+      flex-shrink: 0;
+    }
+    .screen-header h2 {
+      flex: 1;
+      text-align: center;
+      font-size: 20px;
+      font-weight: 500;
+      letter-spacing: -0.005em;
+      color: #101820;
+      margin-right: 24px;
+    }
+
+    .screen-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 22px 24px;
+    }
+
+    /* ── Brand (splash) ── */
+    .brand {
+      position: absolute;
+      left: 50%;
+      top: 42%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      width: 100%;
+      padding: 0 24px;
+      pointer-events: none;
+    }
+    .brand h1 {
+      font-size: clamp(42px, 14vw, 60px);
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      line-height: 1.1;
+      color: #000;
+    }
+    .brand p {
+      margin-top: 8px;
+      font-size: clamp(18px, 5.5vw, 24px);
+      font-weight: 500;
+      letter-spacing: -0.12px;
+      color: #000;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: block;
+      width: 100%;
+      height: 48px;
+      border: 0;
+      border-radius: 4px;
+      background: #101820;
+      color: #fff;
+      font: 700 17px/26px "Helvetica Neue", Helvetica, Arial, sans-serif;
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+    .btn:hover { background: #000; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn.outline {
+      background: transparent;
+      border: 1px solid #9BB7FF;
+      color: #9BB7FF;
+    }
+    .btn.outline:hover { background: rgba(155,183,255,0.08); }
+    .btn.light {
+      background: #fff;
+      color: #005EB8;
+    }
+    .btn.light:hover { background: #f2f2f2; }
+    .btn.pill { border-radius: 45px; }
+
+    .cta-dock {
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      bottom: 40px;
+      z-index: 15;
+    }
+
+    /* ── Category picker (screen: category) ── */
+    .search-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      height: 45px;
+      border-radius: 45px;
+      border: 1px solid #F6F6F6;
+      background: #fff;
+      padding: 0 18px;
+      font-size: 16px;
+      color: rgba(0,0,0,0.5);
+      margin-bottom: 20px;
+      flex-shrink: 0;
+    }
+
+    .cat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .cat-card {
+      position: relative;
+      height: 200px;
+      border-radius: 20px;
+      padding: 20px;
+      cursor: pointer;
+      border: none;
+      text-align: left;
+      overflow: hidden;
+      transition: transform 0.15s ease;
+    }
+    .cat-card:hover { transform: translateY(-2px); }
+    .cat-card .cat-name {
+      font-size: 22px;
+      font-weight: 500;
+      color: #000;
+      display: block;
+    }
+    .cat-card .cat-photo {
+      position: absolute;
+      right: 4px;
+      bottom: -6px;
+      width: 62%;
+      max-height: 66%;
+      object-fit: contain;
+      pointer-events: none;
+    }
+    .cat-card.general .cat-photo.general-photo {
+      right: 16px;
+      bottom: auto;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 34%;
+      max-height: 84%;
+    }
+    .cat-card.aquarium .cat-photo {
+      width: 46%;
+      bottom: -18px;
+      right: 10px;
+    }
+    .cat-card .cat-tag {
+      position: absolute;
+      left: 20px;
+      bottom: 16px;
+      background: #F4F4EA;
+      border-radius: 20px;
+      padding: 8px 14px;
+      font-size: 13px;
+      color: #000;
+    }
+    .cat-card.aquarium .cat-name,
+    .cat-card.aquarium .cat-tag { color: #fff; }
+    .cat-card.aquarium .cat-tag { background: rgba(255,255,255,0.2); }
+    .cat-card.general {
+      grid-column: 1 / -1;
+      height: 96px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .cat-card.general .cat-name { font-size: 24px; font-weight: 600; }
+    .cat-card.general .cat-tag {
+      position: static;
+      margin-top: 4px;
+    }
+
+    /* ── Size screen ── */
+    .field-label {
+      font-size: 16px;
+      font-weight: 600;
+      color: #2F3C45;
+      margin: 18px 0 8px;
+    }
+    .field-row { display: flex; gap: 10px; align-items: center; }
+    .field-input {
+      flex: 1;
+      height: 40px;
+      border: 1px solid #2F3C45;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      font-size: 18px;
+      color: rgba(0,0,0,0.5);
+    }
+    .unit-btn {
+      width: 85px;
+      height: 40px;
+      border: 1px solid #2F3C45;
+      border-radius: 4px;
+      background: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 18px;
+      color: #000;
+      cursor: pointer;
+    }
+    .helper-text {
+      font-size: 14px;
+      color: rgba(0,0,0,0.6);
+      margin-top: 20px;
+    }
+    .size-dock {
+      margin-top: auto;
+      background: #000;
+      margin-left: -22px;
+      margin-right: -22px;
+      padding: 34px 22px 24px;
+      text-align: center;
+    }
+    .size-dock p { color: #fff; font-size: 14px; margin-bottom: 14px; }
+    .size-dock .btn.pill {
+      background: #F4F4EA;
+      color: #2F3C45;
+      border: 1.5px solid #2F3C45;
+      font-weight: 800;
+      height: 60px;
+      font-size: 18px;
+    }
+    .size-dock .know-link {
+      display: block;
+      margin-top: 14px;
+      color: #fff;
+      font-size: 14px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .next-btn-wrap { padding-top: 16px; }
+
+    /* ── AR scan + measurement confirm, merged into one screen
+       exactly like the real Figma frame: live photo, a measured
+       line drawn across the container, and a confirm popup that
+       fades in over the same view once "scanning" settles. ── */
+    .scan-view {
+      position: relative;
+      flex: 1;
+      background-size: cover;
+      background-position: center;
+      overflow: hidden;
+    }
+    .scan-topbar {
+      position: absolute;
+      top: 58px;
+      left: 0; right: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 3;
+    }
+    .scan-icon-btn {
+      width: 53px; height: 53px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.92);
+      border: none;
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .scan-icon-img { width: 22px; height: 22px; object-fit: contain; }
+    .scan-icon-col { display: flex; flex-direction: column; gap: 14px; }
+
+    .measure-line-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .measure-label {
+      position: absolute;
+      left: 46%;
+      top: 42%;
+      z-index: 3;
+      background: rgba(255,255,255,0.92);
+      padding: 3px 9px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #101820;
+      transform: rotate(-38deg);
+      pointer-events: none;
+    }
+
+    .scan-bottom-controls {
+      position: absolute;
+      bottom: 24px;
+      left: 0; right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 22px;
+      z-index: 3;
+    }
+    .scan-plus-btn {
+      width: 62px; height: 62px;
+      border-radius: 50%;
+      background: #F5EACD;
+      border: none;
+      font-size: 26px;
+      cursor: pointer;
+    }
+
+    .confirm-popup {
+      position: absolute;
+      right: 16px;
+      bottom: 88px;
+      z-index: 5;
+      background: #fff;
+      border: 1.5px solid #9BB7FF;
+      border-radius: 12px;
+      padding: 12px 14px;
+      width: 190px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.22);
+      opacity: 0;
+      transform: translateY(8px) scale(0.96);
+      pointer-events: none;
+      transition: opacity 0.3s cubic-bezier(0.16,1,0.3,1), transform 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    .confirm-popup.visible { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+    .confirm-popup p { font-size: 13px; color: #101820; margin-bottom: 10px; line-height: 1.4; }
+    .confirm-popup .popup-actions { display: flex; gap: 8px; }
+    .popup-btn {
+      flex: 1;
+      height: 32px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid #101820;
+      background: #fff;
+      color: #101820;
+    }
+    .popup-btn.primary { background: #101820; color: #fff; }
+
+    .measure-stats { flex-shrink: 0; background: #F4F4EA; }
+    .measure-stat-row {
+      display: flex;
+      align-items: baseline;
+      padding: 14px 22px;
+      border-top: 1px solid #E5E5E5;
+    }
+    .measure-stat-row .label { font-size: 15px; color: #2F3C45; width: 70px; }
+    .measure-stat-row .value { font-size: 20px; font-weight: 700; }
+    .measure-stat-row .sub { font-size: 13px; color: #6c757d; margin-left: auto; }
+
+    /* ── Customize screen ── */
+    .swatch-photo {
+      width: 100%;
+      height: 240px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 90px;
+      margin-bottom: 24px;
+    }
+    .color-row { display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap; }
+    .color-dot {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+    }
+    .color-dot.selected { border-color: #101820; }
+    .pattern-row { display: flex; gap: 12px; }
+    .pattern-card {
+      flex: 1;
+      height: 96px;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(0,0,0,0.5);
+      font-size: 13px;
+    }
+    .pattern-card.selected { border-color: #101820; }
+
+    /* ── Printer question screen ── */
+    .printer-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+    }
+    .printer-body h2 {
+      color: #fff;
+      font-size: 34px;
+      font-weight: 600;
+      letter-spacing: -0.005em;
+      max-width: 320px;
+    }
+    .printer-actions {
+      position: absolute;
+      left: 0; right: 0; bottom: 40px;
+      padding: 0 63px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* ── Done screen ── */
+    .done-body {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+    }
+    .done-body h1 {
+      position: relative;
+      z-index: 2;
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .done-body p {
+      position: relative;
+      z-index: 2;
+      font-size: 16px;
+      color: rgba(0,0,0,0.6);
+      max-width: 280px;
+    }
+    .done-restart {
+      position: absolute;
+      z-index: 2;
+      bottom: 40px;
+      left: 24px; right: 24px;
+    }
+  </style>
+</head>
+<body>
+  <a class="back-lab" href="index.html">← Lab</a>
+  <div class="stage">
+    <div class="phone" id="phone">
+      <canvas id="wire-canvas"></canvas>
+
+      <!-- Status bar (icons swap to white on dark screens via JS) -->
+      <div class="status" id="status-bar">
+        <span>9:41</span>
+        <div class="status-icons" aria-hidden="true">
+          <svg width="19" height="11" viewBox="0 0 19 11" fill="#111827"><rect x="0" y="3.5" width="3" height="7.5" rx="0.6"/><rect x="4.5" y="2" width="3" height="9" rx="0.6"/><rect x="9" y="0.5" width="3" height="10.5" rx="0.6"/><rect x="13.5" y="0" width="3" height="11" rx="0.6" opacity="0.35"/></svg>
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="#111827"><path d="M8.5 2.8c2.2 0 4.2.9 5.7 2.3l-1.4 1.4A6.1 6.1 0 0 0 8.5 4.8c-1.6 0-3 .6-4.1 1.7L3 5.1A8.1 8.1 0 0 1 8.5 2.8Zm0 3.2c1.3 0 2.5.5 3.4 1.4L10.5 9A3.6 3.6 0 0 0 8.5 8.2c-.9 0-1.7.3-2.3.8L4.8 7.4A5.2 5.2 0 0 1 8.5 6Zm0 3.2a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="2.2" stroke="#111827" opacity="0.35"/><rect x="2" y="2" width="18" height="8" rx="1.3" fill="#111827"/><path d="M23 4v4a1.6 1.6 0 0 0 0-4Z" fill="#111827" opacity="0.4"/></svg>
+        </div>
+      </div>
+
+      <!-- 1. Splash -->
+      <section class="screen active transparent-bg" data-screen="splash">
+        <div class="brand">
+          <h1>LidGenius</h1>
+          <p>Print Your Perfect Lid</p>
+        </div>
+        <div class="cta-dock">
+          <button class="btn" data-next="category">Start printing</button>
+        </div>
+      </section>
+
+      <!-- 2. Category picker -->
+      <section class="screen" data-screen="category">
+        <div class="screen-body" style="padding-top:58px;">
+          <button class="search-btn" disabled>🔍&nbsp; I want to print lid for...</button>
+          <div class="cat-grid">
+            <button class="cat-card" data-cat="Jar" style="background:#F5EACD;" data-next="size">
+              <span class="cat-name">Jar</span>
+              <img class="cat-photo" src="lidgenius/photos/jar.png" alt="Glass jar" />
+              <span class="cat-tag">2 types available</span>
+            </button>
+            <button class="cat-card" data-cat="Storage" style="background:#E9DCEA;" data-next="size">
+              <span class="cat-name">Storage</span>
+              <img class="cat-photo" src="lidgenius/photos/storage-446da4.png" alt="Storage bin" />
+              <span class="cat-tag">3 types available</span>
+            </button>
+            <button class="cat-card" data-cat="Keyboard" style="background:#B8D1CF;" data-next="size">
+              <span class="cat-name">Keyboard</span>
+              <img class="cat-photo" src="lidgenius/photos/keyboard-1a2335.png" alt="Keyboard" />
+              <span class="cat-tag">2 types available</span>
+            </button>
+            <button class="cat-card aquarium" data-cat="Aquarium" style="background:#D15340;" data-next="size">
+              <span class="cat-name">Aquarium</span>
+              <img class="cat-photo" src="lidgenius/photos/aquarium-4ad0e9.png" alt="Aquarium" />
+              <span class="cat-tag">10 types available</span>
+            </button>
+            <button class="cat-card general" data-cat="General" style="background:#CFD1E8;" data-next="size">
+              <span class="cat-name">General</span>
+              <img class="cat-photo general-photo" src="lidgenius/photos/general.png" alt="Jar rim" />
+              <span class="cat-tag">15 types available</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Size input -->
+      <section class="screen" data-screen="size">
+        <div class="screen-header">
+          <button class="back-btn" data-back="category">←</button>
+          <h2>What size will the lid be?</h2>
+        </div>
+        <div class="screen-body" style="display:flex; flex-direction:column;">
+          <div class="field-label">Width</div>
+          <div class="field-row">
+            <div class="field-input">0.00</div>
+            <button class="unit-btn">Inch ⌄</button>
+          </div>
+          <div class="field-label">Height</div>
+          <div class="field-row">
+            <div class="field-input">0.00</div>
+            <button class="unit-btn">Inch ⌄</button>
+          </div>
+          <div class="field-label">Depth</div>
+          <div class="field-row">
+            <div class="field-input">2.00</div>
+            <button class="unit-btn">Inch ⌄</button>
+          </div>
+          <p class="helper-text">Most customers prefer a 2-inch depth</p>
+          <div class="next-btn-wrap">
+            <button class="btn" data-next="customize">Next</button>
+          </div>
+          <div class="size-dock">
+            <p>I don't know the size.</p>
+            <button class="btn pill" data-next="scan">Measure in app</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. AR scan + measurement confirm (merged, matches the real
+           Figma frame: live photo, measured line, popup over the view) -->
+      <section class="screen dark" data-screen="scan">
+        <div class="scan-view" id="scan-view" style="background-image:url('lidgenius/photos/measure-bg-72c7bb.png');">
+          <div class="scan-topbar">
+            <button class="scan-icon-btn" data-back="size">←</button>
+            <div class="scan-icon-col">
+              <button class="scan-icon-btn"><img class="scan-icon-img" src="lidgenius/photos/icon-flash.png" alt="Flash" /></button>
+              <button class="scan-icon-btn"><img class="scan-icon-img" src="lidgenius/photos/icon-settings.png" alt="Settings" /></button>
+              <button class="scan-icon-btn"><img class="scan-icon-img" src="lidgenius/photos/icon-question.png" alt="Help" /></button>
+            </div>
+          </div>
+
+          <svg class="measure-line-svg" viewBox="0 0 430 700" preserveAspectRatio="none">
+            <line x1="150" y1="430" x2="310" y2="230" stroke="#fff" stroke-width="2.5" />
+            <circle cx="150" cy="430" r="7" fill="#fff" />
+            <circle cx="310" cy="230" r="7" fill="#fff" />
+          </svg>
+          <div class="measure-label">3.5"</div>
+
+          <div class="scan-bottom-controls">
+            <button class="scan-icon-btn" id="redo-scan-btn"><img class="scan-icon-img" src="lidgenius/photos/icon-rotate-left.png" alt="Redo scan" /></button>
+            <button class="scan-plus-btn">+</button>
+          </div>
+
+          <div class="confirm-popup" id="confirm-popup">
+            <p>Measure complete. Use current measurement?</p>
+            <div class="popup-actions">
+              <button class="popup-btn" data-next="size">Redo</button>
+              <button class="popup-btn primary" data-next="customize">Confirm</button>
+            </div>
+          </div>
+        </div>
+        <div class="measure-stats">
+          <div class="measure-stat-row">
+            <span class="label">Width</span>
+            <span class="value">3.5"</span>
+            <span class="sub">9.00 cm</span>
+          </div>
+          <div class="measure-stat-row">
+            <span class="label">Length</span>
+            <span class="value">4"</span>
+            <span class="sub">10.00 cm</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. Customize -->
+      <section class="screen" data-screen="customize">
+        <div class="screen-header">
+          <button class="back-btn" data-back="scan">←</button>
+          <h2>Customize your jar</h2>
+        </div>
+        <div class="screen-body">
+          <div class="swatch-photo" id="swatch-photo" style="background:#F5EACD;">🫙</div>
+          <div class="field-label" style="margin-top:0;">Color</div>
+          <div class="color-row">
+            <button class="color-dot selected" style="background:#F5EACD;"></button>
+            <button class="color-dot" style="background:#E9DCEA;"></button>
+            <button class="color-dot" style="background:#B8D1CF;"></button>
+            <button class="color-dot" style="background:#D15340;"></button>
+            <button class="color-dot" style="background:#CFD1E8;"></button>
+            <button class="color-dot" style="background:#101820;"></button>
+          </div>
+          <div class="field-label">Pattern</div>
+          <div class="pattern-row">
+            <button class="pattern-card selected" style="background:repeating-linear-gradient(45deg,#F4F4EA,#F4F4EA 8px,#e2e0d2 8px,#e2e0d2 16px);">Solid</button>
+            <button class="pattern-card" style="background:radial-gradient(#e2e0d2 2px, #F4F4EA 2px) 0 0/12px 12px;">Dotted</button>
+          </div>
+          <div class="next-btn-wrap" style="margin-top:24px;">
+            <button class="btn" data-next="printer">Continue</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. Printer question -->
+      <section class="screen dark" data-screen="printer">
+        <div class="printer-body">
+          <h2>Do you have a printer?</h2>
+        </div>
+        <div class="printer-actions">
+          <button class="btn light" data-next="done">Yes</button>
+          <button class="btn outline" data-next="done">No</button>
+        </div>
+      </section>
+
+      <!-- 8. Done -->
+      <section class="screen transparent-bg" data-screen="done">
+        <div class="done-body">
+          <h1>Sending to print</h1>
+          <p>Your lid is queued — the same wireframe from the start now traces the live print path.</p>
+        </div>
+        <div class="done-restart">
+          <button class="btn outline" style="color:#101820;border-color:#101820;" data-next="splash">Start over</button>
+        </div>
+      </section>
+
+      <div class="home-bar" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+    const W = 430;
+    const H = 932;
+
+    // Figma Graph endpoint samples (exact from exported SVG paths)
+    const wires = [
+      {
+        // 322:706 — top horizontal
+        orient: 'h',
+        opacity: 1,
+        yOffset: 0,
+        z: -8,
+        points: [
+          [0, 38.4247], [69.1538, 5.19253], [138.308, 0], [207.462, 15.5776],
+          [276.615, 33.2322], [345.769, 20.7701], [414.923, 25.9626], [484.077, 8.30804],
+          [553.231, 23.8856], [622.385, 28.0396], [691.538, 11.4236], [760.692, 6.23103],
+          [829.846, 31.1552], [899, 10.3851]
+        ]
+      },
+      {
+        // 322:704 — mid horizontal
+        orient: 'h',
+        opacity: 1,
+        yOffset: 38.42,
+        z: -4,
+        points: [
+          [0, 12.5296], [69.1538, 1.5], [138.308, 28.5728], [207.462, 9.52156],
+          [276.615, 31.5808], [345.769, 33.5862], [414.923, 26.5674], [484.077, 16.5404],
+          [553.231, 6.51347], [622.385, 11.5269], [691.538, 38.5997], [760.692, 24.562],
+          [829.846, 7.51617], [899, 21.5539]
+        ]
+      },
+      {
+        // 322:705 — soft horizontal
+        orient: 'h',
+        opacity: 0.3,
+        yOffset: 75.52,
+        z: -12,
+        points: [
+          [0, 28.3579], [69.1538, 30.5065], [138.308, 10.0945], [207.462, 41.2497],
+          [276.615, 22.9863], [345.769, 35.8781], [414.923, 17.6147], [484.077, 1.5],
+          [553.231, 7.94589], [622.385, 12.2432], [691.538, 13.3175], [760.692, 6.87158],
+          [829.846, 33.7295], [899, 26.2093]
+        ]
+      },
+      {
+        // 322:700 — main vertical (left ~19)
+        orient: 'v',
+        opacity: 1,
+        xOffset: 19,
+        z: -2,
+        points: [
+          [27.1757, 945], [11.7703, 872.308], [9.71622, 799.615], [16.9054, 726.923],
+          [7.66216, 654.231], [1.5, 581.538], [6.63514, 508.846], [12.7973, 436.154],
+          [29.2297, 363.462], [25.1216, 290.769], [22.0405, 218.077], [39.5, 145.385],
+          [32.3108, 72.6923], [34.3649, 0]
+        ]
+      },
+      {
+        // 322:699 — soft vertical (left ~56)
+        orient: 'v',
+        opacity: 0.3,
+        xOffset: 56,
+        z: -10,
+        points: [
+          [9.52156, 879], [12.5296, 809.846], [11.5269, 740.692], [6.51347, 671.538],
+          [31.5808, 602.385], [7.51617, 533.231], [26.5674, 464.077], [16.5404, 394.923],
+          [24.562, 325.769], [21.5539, 256.615], [1.5, 187.462], [28.5728, 118.308],
+          [38.5997, 49.1539], [33.5862, -20]
+        ]
+      }
+    ];
+
+    const phone = document.getElementById('phone');
+    const canvas = document.getElementById('wire-canvas');
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xf4f4ea);
+
+    const camera = new THREE.OrthographicCamera(-W / 2, W / 2, H / 2, -H / 2, 0.1, 200);
+    camera.position.set(0, 0, 80);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    const bloom = new UnrealBloomPass(new THREE.Vector2(W, H), 0.35, 0.6, 0.85);
+    composer.addPass(bloom);
+
+    const root = new THREE.Group();
+    scene.add(root);
+
+    function toWorld(x, y) {
+      return new THREE.Vector3(x - W / 2, H / 2 - y, 0);
+    }
+
+    // Horizontal wires were traced from an ~899px-wide Figma frame;
+    // rescale their x-span to fill the actual W-wide phone canvas.
+    const HSCALE = W / 899;
+
+    function makeCurve(def) {
+      const pts = def.points.map(([x, y]) => {
+        if (def.orient === 'h') {
+          return toWorld(x * HSCALE, y + def.yOffset);
+        }
+        return toWorld(x + def.xOffset, y);
+      });
+      // depth from Figma layering
+      pts.forEach((p, i) => {
+        p.z = def.z + Math.sin(i * 0.7) * 1.2;
+      });
+      return new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
+    }
+
+    const wireCurves = [];
+    const ionSystems = [];
+
+    for (const def of wires) {
+      const curve = makeCurve(def);
+      wireCurves.push({ curve, def });
+
+      // Iron wire as thin tube — matches Figma #949494 stroke
+      const tube = new THREE.Mesh(
+        new THREE.TubeGeometry(curve, 180, 1.15, 8, false),
+        new THREE.MeshBasicMaterial({
+          color: 0x949494,
+          transparent: true,
+          opacity: def.opacity,
+          depthWrite: false
+        })
+      );
+      root.add(tube);
+
+      // Soft duplicate wire slightly offset for metal depth
+      const softPts = curve.getPoints(60).map((p, i) =>
+        p.clone().add(new THREE.Vector3(
+          Math.sin(i * 0.4) * 0.8,
+          Math.cos(i * 0.35) * 0.6,
+          -1.5
+        ))
+      );
+      const softCurve = new THREE.CatmullRomCurve3(softPts);
+      const softTube = new THREE.Mesh(
+        new THREE.TubeGeometry(softCurve, 120, 0.7, 6, false),
+        new THREE.MeshBasicMaterial({
+          color: 0x949494,
+          transparent: true,
+          opacity: def.opacity * 0.35,
+          depthWrite: false
+        })
+      );
+      root.add(softTube);
+
+      // Ion particles traveling along each wire
+      const count = def.opacity > 0.5 ? 28 : 14;
+      const positions = new Float32Array(count * 3);
+      const phases = new Float32Array(count);
+      const speeds = new Float32Array(count);
+      for (let i = 0; i < count; i++) {
+        phases[i] = Math.random();
+        speeds[i] = 0.04 + Math.random() * 0.08;
+        const p = curve.getPoint(phases[i]);
+        positions[i * 3] = p.x;
+        positions[i * 3 + 1] = p.y;
+        positions[i * 3 + 2] = p.z + 2;
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const mat = new THREE.PointsMaterial({
+        color: 0x101820,
+        size: def.opacity > 0.5 ? 3.2 : 2.2,
+        transparent: true,
+        opacity: 0.55 + def.opacity * 0.35,
+        sizeAttenuation: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+      });
+      const points = new THREE.Points(geo, mat);
+      root.add(points);
+      ionSystems.push({ curve, positions, phases, speeds, points, geo });
+    }
+
+    // Ambient free ions near intersections (top-left)
+    const freeCount = 40;
+    const freePos = new Float32Array(freeCount * 3);
+    const freeVel = [];
+    for (let i = 0; i < freeCount; i++) {
+      freePos[i * 3] = -W / 2 + Math.random() * 120;
+      freePos[i * 3 + 1] = H / 2 - Math.random() * 160;
+      freePos[i * 3 + 2] = -6 + Math.random() * 12;
+      freeVel.push({
+        x: (Math.random() - 0.5) * 8,
+        y: (Math.random() - 0.5) * 8,
+        z: (Math.random() - 0.5) * 4
+      });
+    }
+    const freeGeo = new THREE.BufferGeometry();
+    freeGeo.setAttribute('position', new THREE.BufferAttribute(freePos, 3));
+    const freePoints = new THREE.Points(
+      freeGeo,
+      new THREE.PointsMaterial({
+        color: 0x4a5560,
+        size: 2.4,
+        transparent: true,
+        opacity: 0.35,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+      })
+    );
+    root.add(freePoints);
+
+    let pointer = { x: 0, y: 0 };
+    phone.addEventListener('pointermove', (e) => {
+      const r = phone.getBoundingClientRect();
+      pointer.x = ((e.clientX - r.left) / r.width - 0.5) * 2;
+      pointer.y = ((e.clientY - r.top) / r.height - 0.5) * 2;
+    });
+
+    function resize() {
+      const rw = phone.clientWidth;
+      const rh = phone.clientHeight;
+      renderer.setSize(rw, rh, false);
+      composer.setSize(rw, rh);
+      bloom.setSize(rw, rh);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const t = clock.getElapsedTime();
+      const dt = Math.min(clock.getDelta(), 0.05);
+
+      // Subtle wire parallax / breath — matches layered Figma depth
+      root.rotation.x = pointer.y * 0.04 + Math.sin(t * 0.35) * 0.01;
+      root.rotation.y = pointer.x * 0.05 + Math.cos(t * 0.28) * 0.012;
+      root.position.x = pointer.x * 4;
+      root.position.y = -pointer.y * 3;
+
+      for (const sys of ionSystems) {
+        const arr = sys.positions;
+        for (let i = 0; i < sys.phases.length; i++) {
+          sys.phases[i] = (sys.phases[i] + sys.speeds[i] * dt) % 1;
+          const p = sys.curve.getPoint(sys.phases[i]);
+          const tangent = sys.curve.getTangent(sys.phases[i]);
+          arr[i * 3] = p.x + Math.sin(t * 3 + i) * 0.4;
+          arr[i * 3 + 1] = p.y + Math.cos(t * 2.4 + i) * 0.4;
+          arr[i * 3 + 2] = p.z + 2 + Math.sin(t * 4 + i * 0.7) * 0.8 + tangent.z;
+        }
+        sys.geo.attributes.position.needsUpdate = true;
+      }
+
+      for (let i = 0; i < freeCount; i++) {
+        freePos[i * 3] += freeVel[i].x * dt;
+        freePos[i * 3 + 1] += freeVel[i].y * dt;
+        freePos[i * 3 + 2] += freeVel[i].z * dt;
+        // keep near top-left cluster
+        if (freePos[i * 3] > -W / 2 + 140 || freePos[i * 3] < -W / 2 - 10) freeVel[i].x *= -1;
+        if (freePos[i * 3 + 1] < H / 2 - 180 || freePos[i * 3 + 1] > H / 2 + 10) freeVel[i].y *= -1;
+      }
+      freeGeo.attributes.position.needsUpdate = true;
+
+      bloom.strength = 0.28 + Math.sin(t * 1.4) * 0.06;
+      composer.render();
+    }
+
+    animate();
+  </script>
+
+  <script>
+    // ── Screen flow — a small clickable prototype through the app,
+    // mirroring the real Figma frames (category → size → measure →
+    // confirm → customize → printer check → done).
+    const screens = document.querySelectorAll('.screen');
+    const statusBar = document.getElementById('status-bar');
+    const darkScreens = new Set(['scan', 'printer']);
+    let selectedCategory = 'Jar';
+    const categoryStyle = {
+      Jar: { emoji: '🫙', color: '#F5EACD' },
+      Storage: { emoji: '📦', color: '#E9DCEA' },
+      Keyboard: { emoji: '⌨️', color: '#B8D1CF' },
+      Aquarium: { emoji: '🐠', color: '#D15340' },
+      General: { emoji: '⭐', color: '#CFD1E8' }
+    };
+
+    function showScreen(name) {
+      screens.forEach(s => s.classList.toggle('active', s.dataset.screen === name));
+      statusBar.classList.toggle('on-dark', darkScreens.has(name));
+      const customizeHeading = document.querySelector('[data-screen="customize"] h2');
+      if (customizeHeading) customizeHeading.textContent = `Customize your ${selectedCategory.toLowerCase()}`;
+      const swatch = document.getElementById('swatch-photo');
+      if (swatch) {
+        const s = categoryStyle[selectedCategory] || categoryStyle.Jar;
+        swatch.textContent = s.emoji;
+        swatch.style.background = s.color;
+      }
+    }
+
+    document.querySelectorAll('[data-next]').forEach(el => {
+      el.addEventListener('click', () => {
+        if (el.dataset.cat) selectedCategory = el.dataset.cat;
+        showScreen(el.dataset.next);
+      });
+    });
+    document.querySelectorAll('[data-back]').forEach(el => {
+      el.addEventListener('click', () => showScreen(el.dataset.back));
+    });
+
+    document.querySelectorAll('.color-dot').forEach(dot => {
+      dot.addEventListener('click', () => {
+        dot.parentElement.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+        dot.classList.add('selected');
+      });
+    });
+    document.querySelectorAll('.pattern-card').forEach(card => {
+      card.addEventListener('click', () => {
+        card.parentElement.querySelectorAll('.pattern-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+      });
+    });
+
+    // The scan + confirm screen is one view: after a simulated
+    // capture delay, the "Measure complete" popup fades in over the
+    // live photo — reveal it instead of switching screens.
+    const confirmPopup = document.getElementById('confirm-popup');
+    let scanTimer = null;
+
+    function startScanCapture() {
+      confirmPopup.classList.remove('visible');
+      clearTimeout(scanTimer);
+      scanTimer = setTimeout(() => confirmPopup.classList.add('visible'), 1800);
+    }
+
+    const scanObserver = new MutationObserver(() => {
+      const scanEl = document.querySelector('[data-screen="scan"]');
+      if (scanEl.classList.contains('active')) startScanCapture();
+    });
+    scanObserver.observe(document.querySelector('[data-screen="scan"]'), { attributes: true, attributeFilter: ['class'] });
+
+    document.getElementById('redo-scan-btn').addEventListener('click', startScanCapture);
+  </script>
+</body>
+</html>

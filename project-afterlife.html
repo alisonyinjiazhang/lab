@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AfterLife — Alison Zhang</title>
+  <style>
+    @font-face {
+      font-family: 'Studio Feixen Sans Writer Book';
+      src: url('fonts/StudioFeixenSans-WriterBook.woff2') format('woff2'),
+           url('fonts/StudioFeixenSans-WriterBook.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Studio Feixen Sans Book';
+      src: url('fonts/StudioFeixenSans-Book.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 62.5%; min-height: 100vh; scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Studio Feixen Sans Writer Book', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 400;
+      line-height: 1.1875;
+      color: #212529;
+      background-color: #F5F5F7;
+    }
+
+    @media (min-width: 860px) {
+      body { font-size: 25px; line-height: 30px; }
+    }
+
+    a { color: inherit; }
+
+    .nav-primary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #000;
+      padding: 10px 20px;
+    }
+
+    .nav-brand {
+      font-size: 1.8rem;
+      font-weight: 400;
+      line-height: 1;
+      color: #212529;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+    }
+    .nav-brand:hover { color: #6c757d; }
+
+    .nav-action {
+      display: inline-flex;
+      align-items: center;
+      background: #17181a;
+      color: #F5F5F7;
+      border-radius: 12px;
+      padding: 14px 30px;
+      font-size: 1.5rem;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .nav-action:hover { background: #000; }
+
+    .nav-secondary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #000;
+      padding: 9px 20px;
+      font-size: 1.4rem;
+      color: #6c757d;
+    }
+    .nav-secondary a { text-decoration: none; }
+    .nav-secondary a:hover { color: #212529; }
+
+    .case-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 48px 28px 80px;
+    }
+
+    .case-eyebrow {
+      font-size: 1.0rem;
+      line-height: 11px;
+      color: #6c757d;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 20px;
+    }
+
+    .case-title {
+      font-size: 44px;
+      line-height: 48px;
+      font-weight: 400;
+      color: #212529;
+      margin-bottom: 20px;
+    }
+
+    .case-subtitle {
+      font-size: 22px;
+      line-height: 34px;
+      font-weight: 400;
+      color: #212529;
+      max-width: 640px;
+      margin-bottom: 36px;
+    }
+
+    .case-meta {
+      display: flex;
+      flex-wrap: wrap;
+      border-top: 1px solid #000;
+      border-bottom: 1px solid #000;
+      margin-bottom: 40px;
+    }
+    .meta-item {
+      flex: 1 1 140px;
+      padding: 14px 16px;
+      border-right: 1px solid #000;
+    }
+    .meta-item:last-child { border-right: none; }
+    .meta-label {
+      font-size: 1.0rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6c757d;
+      margin-bottom: 6px;
+    }
+    .meta-value { font-size: 1.4rem; line-height: 1.4; }
+
+    .case-image {
+      position: relative;
+      width: 100%;
+      border: 1px solid #000;
+      overflow: hidden;
+      margin-bottom: 56px;
+      background: #fff;
+    }
+    .case-image img { width: 100%; display: block; }
+
+    /* Big centered floating CTA — sits directly on top of the hero
+       screenshot, the way the reference floats its consultation
+       pill dead-center over the headline image. */
+    .case-image-cta {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      width: 148px;
+      height: 148px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: rgba(23, 24, 26, 0.92);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      color: #F5F5F7;
+      font-size: 1.4rem;
+      line-height: 1.3;
+      letter-spacing: 0.01em;
+      text-decoration: none;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+      transition: transform 0.15s, background 0.15s;
+    }
+    .case-image-cta:hover {
+      background: #000;
+      transform: translate(-50%, -50%) scale(1.04);
+    }
+    @media (max-width: 700px) {
+      .case-image-cta { width: 108px; height: 108px; font-size: 1.2rem; }
+    }
+
+    .case-section { margin-bottom: 56px; }
+    .section-label {
+      font-size: 1.0rem;
+      line-height: 11px;
+      color: #6c757d;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+    }
+    .section-heading {
+      font-size: 28px;
+      line-height: 34px;
+      margin-bottom: 16px;
+    }
+    .section-body {
+      font-size: 18px;
+      line-height: 29px;
+      color: #212529;
+      max-width: 680px;
+    }
+    .section-body.emphasis {
+      font-size: 20px;
+      line-height: 31px;
+      border-left: 2px solid #000;
+      padding-left: 20px;
+      color: #212529;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid #000;
+      border-left: 1px solid #000;
+    }
+    .feature-card {
+      border-right: 1px solid #000;
+      border-bottom: 1px solid #000;
+      padding: 22px 18px;
+      background: #fff;
+    }
+    .feature-num {
+      font-size: 1.0rem;
+      color: #6c757d;
+      margin-bottom: 12px;
+    }
+    .feature-title {
+      font-size: 1.7rem;
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+    .feature-desc {
+      font-size: 1.4rem;
+      line-height: 1.5;
+      color: #6c757d;
+    }
+
+    .case-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 24px;
+      border-top: 1px solid #000;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .case-link {
+      font-size: 1.0rem;
+      line-height: 11px;
+      color: #6c757d;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .case-link:hover { color: #212529; }
+
+    @media (max-width: 700px) {
+      .case-title { font-size: 32px; line-height: 38px; }
+      .case-subtitle { font-size: 1.8rem; line-height: 1.6; }
+      .meta-item { flex: 1 1 50%; border-bottom: 1px solid #000; }
+      .feature-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav-primary">
+    <a class="nav-brand" href="index.html">Alison Zhang</a>
+  </nav>
+
+  <div class="nav-secondary">
+    <span><a href="index.html">Vibe Coding Projects</a> / AfterLife</span>
+    <a href="index.html">← Back</a>
+  </div>
+
+  <main class="case-container">
+    <p class="case-eyebrow">Vibe Coding Project — 04 / Web</p>
+    <h1 class="case-title">AfterLife</h1>
+    <p class="case-subtitle">
+      A digital estate planning app that organizes assets, messages, and access permissions for the people left behind.
+    </p>
+
+    <div class="case-meta">
+      <div class="meta-item">
+        <div class="meta-label">Role</div>
+        <div class="meta-value">Design &amp; Development</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Stack</div>
+        <div class="meta-value">HTML, CSS, JavaScript</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Type</div>
+        <div class="meta-value">Web App</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Focus</div>
+        <div class="meta-value">Estate · Planning</div>
+      </div>
+    </div>
+
+    <div class="case-image">
+      <img src="afterlife.png" alt="AfterLife digital estate planning interface" />
+      <a class="case-image-cta" href="https://alisonyinjiazhang.github.io/afterlife/" target="_blank" rel="noopener noreferrer">View<br/>Live Site</a>
+    </div>
+
+    <section class="case-section">
+      <p class="section-label">The Problem</p>
+      <h2 class="section-heading">No plan for what's left behind</h2>
+      <p class="section-body">
+        68% of people have no digital estate plan, and an estimated $58B in digital assets goes unclaimed every year — mostly because there's no clear, trusted way to hand off access to accounts, crypto, and personal files when someone dies.
+      </p>
+    </section>
+
+    <section class="case-section">
+      <p class="section-label">Features</p>
+      <h2 class="section-heading">What it does</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-num">01</div>
+          <div class="feature-title">Asset Vault</div>
+          <div class="feature-desc">Accounts, property, crypto, and insurance stored with masked values until unlocked.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-num">02</div>
+          <div class="feature-title">Encrypted Letters</div>
+          <div class="feature-desc">Personal messages that unlock on specific triggers: death, birthdays, milestones.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-num">03</div>
+          <div class="feature-title">Guardian System</div>
+          <div class="feature-desc">Two trusted contacts each hold a key fragment; both must verify before the vault opens.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="case-section">
+      <p class="section-label">How it works</p>
+      <p class="section-body">
+        A user assigns assets and letters to beneficiaries, then selects two guardians to hold key fragments. When a trigger event is confirmed, both guardians cooperatively unlock the vault, notifying beneficiaries and revealing the masked assets, messages, and instructions inside.
+      </p>
+    </section>
+
+    <div class="case-footer">
+      <a class="case-link" href="index.html">← All Projects</a>
+      <a class="case-link" href="https://alisonyinjiazhang.github.io/afterlife/" target="_blank" rel="noopener noreferrer">Visit Live Site ↗</a>
+    </div>
+  </main>
+
+</body>
+</html>

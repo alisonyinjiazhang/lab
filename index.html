@@ -54,6 +54,48 @@
       min-height: 100vh;
     }
 
+    /* ── Cinematic entrance — staggered fade/rise on load, eased with
+       a soft "ease-out-expo"-style curve for a more premium feel ── */
+    @keyframes reveal-up {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes reveal-fade {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    .nav-primary, .nav-secondary, .tab-bar {
+      animation: reveal-fade 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .nav-secondary { animation-delay: 0.08s; }
+    .tab-bar { animation-delay: 0.16s; }
+
+    .bio-eyebrow, .bio-name, .bio-body, .bio-tags, .bio-links {
+      animation: reveal-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .bio-eyebrow { animation-delay: 0.22s; }
+    .bio-name    { animation-delay: 0.3s; }
+    .bio-body    { animation-delay: 0.4s; }
+    .bio-tags    { animation-delay: 0.5s; }
+    .bio-links   { animation-delay: 0.58s; }
+
+    .project-card {
+      animation: reveal-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .project-card:nth-child(1) { animation-delay: 0.3s; }
+    .project-card:nth-child(2) { animation-delay: 0.38s; }
+    .project-card:nth-child(3) { animation-delay: 0.46s; }
+    .project-card:nth-child(4) { animation-delay: 0.54s; }
+    .project-card:nth-child(5) { animation-delay: 0.62s; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .nav-primary, .nav-secondary, .tab-bar,
+      .bio-eyebrow, .bio-name, .bio-body, .bio-tags, .bio-links,
+      .project-card {
+        animation: none;
+      }
+    }
+
     /* ════════════════════════════════
        NAV ROW 1
        Nav brand: 1.8rem = 18px (Brentano navbar-brand)
@@ -114,13 +156,6 @@
       line-height: 1.1875;
     }
 
-    .nav-ext {
-      font-size: 1.4rem;
-      color: #6c757d;
-      cursor: pointer;
-    }
-    .nav-ext:hover { color: #212529; }
-
     /* ════════════════════════════════
        TAB BAR
        .type: font-size 14px; line-height 20px; border-bottom 1px solid #000
@@ -143,8 +178,16 @@
       cursor: pointer;
       user-select: none;
     }
-    #tab-about, #tab-projects { border-right: 1px solid #000; }
-    .tab.active, .tab:hover { color: #212529; }
+    #tab-work, #tab-projects { border-right: 1px solid #000; }
+    .tab:hover { color: #212529; }
+    .tab.active {
+      background: #17181a;
+      color: #F5F5F7;
+    }
+    .tab.active .icon-circle {
+      border-color: #F5F5F7;
+      color: #F5F5F7;
+    }
 
     .tab-end {
       padding: 9px 14px;
@@ -159,18 +202,38 @@
        MAIN — two columns
     ════════════════════════════════ */
     .main {
-      display: grid;
-      grid-template-columns: 36% 64%;
+      display: block;
     }
 
-    /* ── LEFT: Bio ── */
+    /* ── Bio (About) — full width, one panel showing at a time ── */
     .bio-panel {
-      border-right: 1px solid #000;
-      padding: 40px 28px 56px;
-      display: flex;
+      position: relative;
+      display: none;
       flex-direction: column;
+      padding: 56px 28px 56px;
+      min-height: calc(100vh - 100px);
+      max-width: none;
       scroll-margin-top: 12px;
       outline: none;
+      background: #F5F5F7;
+      overflow: hidden;
+    }
+
+    #about-particle-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      max-width: none;
+      display: block;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .bio-panel > *:not(#about-particle-canvas) {
+      position: relative;
+      z-index: 1;
+      max-width: 720px;
     }
 
     /* Eyebrow: .text-sm smallest = 10px/11px */
@@ -237,8 +300,15 @@
     }
     .bio-link:hover { color: #212529; }
 
+    .bio-panel p a {
+      color: #000;
+      text-decoration: underline;
+    }
+    .bio-panel p a:hover { color: #6c757d; }
+
     /* ── RIGHT: Projects ── */
     .projects-panel {
+      display: none;
       padding: 24px 20px 56px;
       overflow-y: auto;
       scroll-margin-top: 12px;
@@ -269,22 +339,21 @@
       color: #6c757d;
     }
 
-    /* ── Grid: collapsed borders like Brentano product grid ── */
+    /* ── Grid: collapsed borders like Brentano product grid (Work panel) ── */
     .projects-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
     }
 
     /* Card: no padding, content fills edge-to-edge like Brentano */
     .project-card {
       border: 1px solid #000;
-      margin-right: -1px;
-      margin-bottom: -1px;
       display: flex;
       flex-direction: column;
       cursor: pointer;
       background: #fff;
-      transition: background 0.1s;
+      transition: background 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       overflow: hidden;
     }
     .project-card:hover { background: #f8f8f8; }
@@ -315,6 +384,7 @@
 
     /* Large image area — fills middle of card, like product image */
     .card-image {
+      position: relative;
       width: 100%;
       aspect-ratio: 4 / 3;
       overflow: hidden;
@@ -365,13 +435,10 @@
       display: none;
       flex-direction: column;
       padding: 24px 20px 56px;
-      grid-column: 2;
     }
 
 /* ── Responsive ── */
     @media (max-width: 700px) {
-      .main { grid-template-columns: 1fr; }
-      .bio-panel { border-right: none; border-bottom: 1px solid #000; }
       .projects-grid { grid-template-columns: 1fr; }
       .bio-body { font-size: 1.6rem; line-height: 1.6; }
     }
@@ -392,22 +459,21 @@
   <!-- Nav 2 -->
   <div class="nav-secondary">
     <span class="nav-tagline">Product designer · design engineer · previously Chase, Coach, BitGo, Bloomberg</span>
-    <span class="nav-ext">↗</span>
   </div>
 
   <!-- Tabs -->
   <div class="tab-bar">
-    <div class="tab active" id="tab-about" role="button" tabindex="0">
-      <span>About</span>
-      <span class="icon-circle" style="width:16px;height:16px;font-size:1rem;">⊕</span>
+    <div class="tab active" id="tab-work" role="button" tabindex="0">
+      <span>⊙</span>
+      <span>Work</span>
     </div>
     <div class="tab" id="tab-projects" role="button" tabindex="0">
       <span>⊙</span>
       <span>Projects</span>
     </div>
-    <div class="tab" id="tab-work" role="button" tabindex="0">
-      <span>⊙</span>
-      <span>Work</span>
+    <div class="tab" id="tab-about" role="button" tabindex="0">
+      <span>About</span>
+      <span class="icon-circle" style="width:16px;height:16px;font-size:1rem;">⊕</span>
     </div>
     <div class="tab-end" id="tab-scroll" role="button" tabindex="0" aria-label="Scroll to projects">↓</div>
   </div>
@@ -417,6 +483,7 @@
 
     <!-- Left: Bio -->
     <section class="bio-panel" id="bio-panel" tabindex="-1">
+      <canvas id="about-particle-canvas"></canvas>
       <p class="bio-eyebrow">Introduction</p>
       <h1 class="bio-name">Alison Zhang</h1>
       <p class="bio-body">
@@ -424,7 +491,7 @@
         <br/><br/>
         Growing up in the 90s shaped a visual style that balances tech brutalism with minimalist design. I am drawn to the clean lines of early digital iPod interfaces, bringing that same tactile precision into contemporary web environments through stark layouts and intentional micro-interactions.
         <br/><br/>
-        Outside of work, I make music.
+        Outside of work, I make <a href="https://www.youtube.com/@Nocturnalmelodic" target="_blank" rel="noopener noreferrer">music</a>.
       </p>
       <div class="bio-tags">
         <span class="bio-tag">Product Design</span>
@@ -442,26 +509,11 @@
     <!-- Right: Projects -->
     <section class="projects-panel" id="projects-panel" tabindex="-1">
       <div class="projects-header" id="vibe-coding-projects">
-        <span class="projects-label">Vibe Coding Projects</span>
-        <span class="projects-count">0 — 4</span>
+        <span class="projects-label">Self-Made Projects</span>
+        <span class="projects-count">0 — 5</span>
       </div>
       <div class="projects-grid">
-        <a class="project-card" href="https://alisonyinjiazhang.github.io/cost-of-living/" target="_blank" style="text-decoration:none;color:inherit;">
-          <div class="card-header">
-            <span class="card-name">Cost of Living</span>
-            <span class="card-num">Web</span>
-          </div>
-          <div class="card-image">
-            <img src="cost-of-living.png" alt="City Cost of Living Calculator" />
-          </div>
-          <div class="card-footer">
-            <span class="card-desc">Finance · Cities</span>
-            <span>↗</span>
-          </div>
-        </a>
-
-        <!-- Card 2: Fortune Teller -->
-        <a class="project-card" href="https://alisonyinjiazhang.github.io/fortune-telling-app/" target="_blank" style="text-decoration:none;color:inherit;">
+        <a class="project-card" href="project-fortune-teller.html" style="text-decoration:none;color:inherit;">
           <div class="card-header">
             <span class="card-name">Fortune Teller</span>
             <span class="card-num">Web</span>
@@ -475,8 +527,7 @@
           </div>
         </a>
 
-        <!-- Card 3: Chord Game -->
-        <a class="project-card" href="https://alisonyinjiazhang.github.io/chord-game/" target="_blank" style="text-decoration:none;color:inherit;">
+        <a class="project-card" href="project-chord-game.html" style="text-decoration:none;color:inherit;">
           <div class="card-header">
             <span class="card-name">Chord Game</span>
             <span class="card-num">Game</span>
@@ -490,8 +541,35 @@
           </div>
         </a>
 
-        <!-- Card 4: AfterLife -->
-        <a class="project-card" href="https://alisonyinjiazhang.github.io/afterlife/" target="_blank" style="text-decoration:none;color:inherit;">
+        <a class="project-card" href="project-lidgenius.html" style="text-decoration:none;color:inherit;">
+          <div class="card-header">
+            <span class="card-name">LidGenius</span>
+            <span class="card-num">Mobile</span>
+          </div>
+          <div class="card-image">
+            <img src="lidgenius-thumb.jpg" alt="LidGenius app screens" />
+          </div>
+          <div class="card-footer">
+            <span class="card-desc">Print · 3D</span>
+            <span>↗</span>
+          </div>
+        </a>
+
+        <a class="project-card" href="project-cost-of-living.html" style="text-decoration:none;color:inherit;">
+          <div class="card-header">
+            <span class="card-name">Cost of Living</span>
+            <span class="card-num">Web</span>
+          </div>
+          <div class="card-image">
+            <img src="cost-of-living.png" alt="City Cost of Living Calculator" />
+          </div>
+          <div class="card-footer">
+            <span class="card-desc">Finance · Cities</span>
+            <span>↗</span>
+          </div>
+        </a>
+
+        <a class="project-card" href="project-afterlife.html" style="text-decoration:none;color:inherit;">
           <div class="card-header">
             <span class="card-name">AfterLife</span>
             <span class="card-num">Web</span>
@@ -589,7 +667,6 @@
   const projectsPanel  = document.getElementById('projects-panel');
   const workPanel      = document.getElementById('work-panel');
   const workUnlocked   = document.getElementById('work-unlocked');
-  const projectsHeader = document.getElementById('vibe-coding-projects');
 
   function setActiveTab(active) {
     tabAbout.classList.toggle('active', active === 'about');
@@ -597,31 +674,30 @@
     tabWork.classList.toggle('active', active === 'work');
     projectsPanel.classList.toggle('focused', active === 'projects');
 
-    if (active === 'work') {
-      projectsPanel.style.display = 'none';
-      workPanel.style.display = 'flex';
-    } else {
-      projectsPanel.style.display = '';
-      workPanel.style.display = 'none';
-    }
+    bioPanel.style.display = active === 'about' ? 'flex' : 'none';
+    projectsPanel.style.display = active === 'projects' ? 'block' : 'none';
+    workPanel.style.display = active === 'work' ? 'flex' : 'none';
   }
 
   function focusProjects() {
     setActiveTab('projects');
     projectsPanel.scrollTop = 0;
-    projectsHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     projectsPanel.focus({ preventScroll: true });
   }
 
   function focusAbout() {
     setActiveTab('about');
-    bioPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     bioPanel.focus({ preventScroll: true });
   }
 
   function focusWork() {
     setActiveTab('work');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+
+  setActiveTab('work');
 
   tabProjects.addEventListener('click', focusProjects);
   tabScroll.addEventListener('click', focusProjects);
@@ -636,6 +712,432 @@
       }
     });
   });
+
+  // Shared driver for the other four thumbnail canvases — handles
+  // resize/DPR/rAF so each animation below only defines its draw step.
+  function setupCardCanvas(id, draw) {
+    const canvas = document.getElementById(id);
+    if (!canvas || !window.matchMedia('(prefers-reduced-motion: no-preference)').matches) return;
+    const ctx = canvas.getContext('2d');
+    const container = canvas.closest('.card-image');
+    let w = 0, h = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    function resize() {
+      const rect = container.getBoundingClientRect();
+      w = rect.width; h = rect.height;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    if (window.ResizeObserver) new ResizeObserver(resize).observe(container);
+    else window.addEventListener('resize', resize);
+    resize();
+
+    const clock0 = performance.now();
+    function frame(now) {
+      const t = (now - clock0) / 1000;
+      if (w > 0 && h > 0) draw(ctx, w, h, t);
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  // Fortune Teller — twinkling constellation with an occasional
+  // shooting star, on the card's indigo backdrop.
+  (function () {
+    let stars = [];
+    setupCardCanvas('fortune-canvas', (ctx, w, h, t) => {
+      if (stars.length === 0) {
+        stars = Array.from({ length: 32 }, () => ({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          r: Math.random() * 1.3 + 0.5,
+          phase: Math.random() * Math.PI * 2,
+          speed: 0.5 + Math.random() * 0.8
+        }));
+      }
+      ctx.clearRect(0, 0, w, h);
+      ctx.lineWidth = 0.6;
+      for (let i = 0; i < stars.length; i++) {
+        for (let j = i + 1; j < stars.length; j++) {
+          const a = stars[i], b = stars[j];
+          const d = Math.hypot(a.x - b.x, a.y - b.y);
+          if (d < 70) {
+            ctx.strokeStyle = `rgba(230, 210, 255, ${0.14 * (1 - d / 70)})`;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
+        }
+      }
+      stars.forEach(s => {
+        const twinkle = 0.4 + 0.6 * Math.abs(Math.sin(t * s.speed + s.phase));
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 245, 225, ${twinkle})`;
+        ctx.shadowColor = 'rgba(255, 235, 200, 0.9)';
+        ctx.shadowBlur = 5;
+        ctx.fill();
+      });
+      const cycle = t % 4;
+      if (cycle < 0.6) {
+        const p = cycle / 0.6;
+        const sx = w * 0.1 + p * w * 0.5;
+        const sy = h * 0.15 + p * h * 0.35;
+        const grad = ctx.createLinearGradient(sx, sy, sx - 34, sy - 18);
+        grad.addColorStop(0, `rgba(255,255,255,${0.9 * (1 - p)})`);
+        grad.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(sx - 34, sy - 18);
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+      }
+    });
+  })();
+
+  // Chord Game — a little equalizer pulsing along the bottom edge,
+  // with music notes drifting up through the frame.
+  (function () {
+    const barCount = 14;
+    const bars = Array.from({ length: barCount }, () => ({
+      phase: Math.random() * Math.PI * 2,
+      speed: 1.2 + Math.random() * 1.6
+    }));
+    const notes = Array.from({ length: 5 }, (_, i) => ({
+      x: 0.1 + Math.random() * 0.8,
+      delay: i * 1.1,
+      char: Math.random() > 0.5 ? '♪' : '♫'
+    }));
+    setupCardCanvas('chord-canvas', (ctx, w, h, t) => {
+      ctx.clearRect(0, 0, w, h);
+      const barW = w / barCount;
+      for (let i = 0; i < barCount; i++) {
+        const b = bars[i];
+        const amp = 0.16 + 0.26 * (0.5 + 0.5 * Math.sin(t * b.speed + b.phase));
+        const barH = h * amp;
+        ctx.fillStyle = 'rgba(255, 208, 120, 0.65)';
+        ctx.shadowColor = 'rgba(255, 190, 90, 0.8)';
+        ctx.shadowBlur = 6;
+        ctx.fillRect(i * barW + barW * 0.22, h - barH, barW * 0.56, barH);
+      }
+      ctx.shadowBlur = 0;
+      notes.forEach(n => {
+        const local = (t + n.delay) % 6;
+        const y = h - (local / 6) * h * 1.1;
+        const opacity = local < 5 ? Math.max(0, 0.7 * (1 - local / 5)) : 0;
+        ctx.font = '16px sans-serif';
+        ctx.fillStyle = `rgba(255, 218, 150, ${opacity})`;
+        ctx.fillText(n.char, n.x * w, y);
+      });
+    });
+  })();
+
+  // Cost of Living — a line chart that continually draws itself
+  // rising left to right, with a glowing tip, over a faint grid.
+  (function () {
+    setupCardCanvas('cost-canvas', (ctx, w, h, t) => {
+      ctx.clearRect(0, 0, w, h);
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.lineWidth = 1;
+      for (let gy = 1; gy < 4; gy++) {
+        ctx.beginPath();
+        ctx.moveTo(0, (h / 4) * gy);
+        ctx.lineTo(w, (h / 4) * gy);
+        ctx.stroke();
+      }
+      const pointCount = 7;
+      const pts = [];
+      for (let i = 0; i <= pointCount; i++) {
+        const px = (i / pointCount) * w;
+        const wobble = Math.sin(i * 1.7 + t * 0.4) * 0.06;
+        const trend = 0.85 - (i / pointCount) * 0.55;
+        pts.push([px, h * (trend + wobble)]);
+      }
+      const cycle = (t * 0.18) % 1;
+      const revealCount = Math.max(2, Math.floor(cycle * (pointCount + 1)));
+      ctx.beginPath();
+      ctx.moveTo(pts[0][0], pts[0][1]);
+      for (let i = 1; i < revealCount; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+      ctx.strokeStyle = 'rgba(190, 255, 220, 0.85)';
+      ctx.lineWidth = 2;
+      ctx.shadowColor = 'rgba(160, 255, 200, 0.6)';
+      ctx.shadowBlur = 6;
+      ctx.stroke();
+      const tip = pts[Math.min(revealCount, pointCount)];
+      if (tip) {
+        ctx.beginPath();
+        ctx.arc(tip[0], tip[1], 3, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(210, 255, 230, 1)';
+        ctx.shadowBlur = 10;
+        ctx.fill();
+      }
+    });
+  })();
+
+  // AfterLife — slow embers of warm light drifting upward, a quiet,
+  // candlelit counterpart to the other cards' busier motion.
+  (function () {
+    let embers = [];
+    let lastT = 0;
+    setupCardCanvas('afterlife-canvas', (ctx, w, h, t) => {
+      if (embers.length === 0) {
+        embers = Array.from({ length: 18 }, () => ({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          r: Math.random() * 1.6 + 0.6,
+          speed: 6 + Math.random() * 10,
+          sway: Math.random() * Math.PI * 2,
+          swaySpeed: 0.4 + Math.random() * 0.5
+        }));
+        lastT = t;
+      }
+      const dt = Math.min(t - lastT, 0.05);
+      lastT = t;
+      ctx.clearRect(0, 0, w, h);
+      embers.forEach(e => {
+        e.y -= e.speed * dt;
+        if (e.y < -8) { e.y = h + 8; e.x = Math.random() * w; }
+        const sway = Math.sin(t * e.swaySpeed + e.sway) * 8;
+        const fade = Math.max(0, Math.min(1, Math.min(e.y / 24, (h - e.y) / 24 + 0.4)));
+        ctx.beginPath();
+        ctx.arc(e.x + sway, e.y, e.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 214, 170, ${0.75 * fade})`;
+        ctx.shadowColor = 'rgba(255, 200, 150, 0.9)';
+        ctx.shadowBlur = 6;
+        ctx.fill();
+      });
+    });
+  })();
+
+  // About — a real 3D point cloud (perspective-projected, rotating in
+  // XYZ space, not a flat 2D scatter) anchored to the right side of
+  // the panel: a sphere of glowing particles with a hexagram sigil
+  // embedded as a flat plane inside it, echoing the reference gif.
+  (function () {
+    const canvas = document.getElementById('about-particle-canvas');
+    if (!canvas || !window.matchMedia('(prefers-reduced-motion: no-preference)').matches) return;
+    const ctx = canvas.getContext('2d');
+    const container = canvas.closest('.bio-panel');
+    let w = 0, h = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let pointer = { x: 0, y: 0 };
+
+    // Sphere shell of points (with radius jitter, so it reads as a
+    // cloud rather than a perfect ball).
+    const SPHERE_N = 240;
+    const spherePts = [];
+    for (let i = 0; i < SPHERE_N; i++) {
+      const u = Math.random() * 2 - 1;
+      const theta = Math.random() * Math.PI * 2;
+      const rad = Math.sqrt(1 - u * u);
+      const jitter = 0.82 + Math.random() * 0.32;
+      spherePts.push({
+        x: rad * Math.cos(theta) * jitter,
+        y: u * jitter,
+        z: rad * Math.sin(theta) * jitter,
+        tw: Math.random() * Math.PI * 2,
+        speed: 0.4 + Math.random() * 0.8
+      });
+    }
+
+    // Hexagram (two overlapping triangles) as a flat ring of points
+    // in the XY plane — an occult sigil riding inside the sphere.
+    // Kept as two separate point loops so they render as two closed
+    // triangles rather than one path bridging both.
+    function makeTriangle(offset) {
+      const pts = [];
+      for (let i = 0; i < 3; i++) {
+        const a1 = offset + (i / 3) * Math.PI * 2 - Math.PI / 2;
+        const a2 = offset + ((i + 1) / 3) * Math.PI * 2 - Math.PI / 2;
+        for (let s = 0; s < 10; s++) {
+          const tt = s / 10;
+          pts.push({
+            x: (Math.cos(a1) * (1 - tt) + Math.cos(a2) * tt) * 0.92,
+            y: (Math.sin(a1) * (1 - tt) + Math.sin(a2) * tt) * 0.92,
+            z: 0
+          });
+        }
+      }
+      return pts;
+    }
+    const trianglePts = [makeTriangle(0), makeTriangle(Math.PI)];
+
+    // A second, smaller occult figure — a 5-pointed star (pentagram),
+    // made by connecting every 2nd vertex of a pentagon — nested
+    // inside the hexagram and counter-spun for a "gears within gears"
+    // instrument feel.
+    function makeStarPolygon(n, skip, radius) {
+      const verts = [];
+      for (let i = 0; i < n; i++) {
+        const a = -Math.PI / 2 + (i / n) * Math.PI * 2;
+        verts.push({ x: Math.cos(a) * radius, y: Math.sin(a) * radius });
+      }
+      const pts = [];
+      for (let i = 0; i < n; i++) {
+        const v1 = verts[i];
+        const v2 = verts[(i + skip) % n];
+        for (let s = 0; s < 10; s++) {
+          const tt = s / 10;
+          pts.push({ x: v1.x * (1 - tt) + v2.x * tt, y: v1.y * (1 - tt) + v2.y * tt, z: 0 });
+        }
+      }
+      return pts;
+    }
+    const pentagramPts = makeStarPolygon(5, 2, 0.62);
+
+    const outerRingPts = [];
+    for (let i = 0; i < 48; i++) {
+      const a = (i / 48) * Math.PI * 2;
+      outerRingPts.push({ x: Math.cos(a) * 1.18, y: Math.sin(a) * 1.18, z: 0 });
+    }
+
+    // Instrument-dial tick marks just outside the ring, plus a tiny
+    // sun-glyph (circle + dot) at the very center.
+    const tickPts = [];
+    for (let i = 0; i < 32; i++) {
+      const a = (i / 32) * Math.PI * 2;
+      const long = i % 4 === 0;
+      tickPts.push([
+        { x: Math.cos(a) * 1.2, y: Math.sin(a) * 1.2, z: 0 },
+        { x: Math.cos(a) * (long ? 1.32 : 1.26), y: Math.sin(a) * (long ? 1.32 : 1.26), z: 0 }
+      ]);
+    }
+    const centerGlyphPts = [];
+    for (let i = 0; i <= 24; i++) {
+      const a = (i / 24) * Math.PI * 2;
+      centerGlyphPts.push({ x: Math.cos(a) * 0.05, y: Math.sin(a) * 0.05, z: 0 });
+    }
+
+    function resize() {
+      const rect = container.getBoundingClientRect();
+      w = rect.width; h = rect.height;
+      if (w === 0 || h === 0) return;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    if (window.ResizeObserver) new ResizeObserver(resize).observe(container);
+    else window.addEventListener('resize', resize);
+    resize();
+
+    container.addEventListener('pointermove', (e) => {
+      const rect = container.getBoundingClientRect();
+      pointer.x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+      pointer.y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+    });
+
+    const clock0 = performance.now();
+    function frame(now) {
+      const t = (now - clock0) / 1000;
+      if (w > 0 && h > 0) {
+        ctx.clearRect(0, 0, w, h);
+
+        // Place the cloud in the empty right half of the panel —
+        // past the 720px text column — so it fills the unused space.
+        // Skip when the viewport is too narrow for a right stage.
+        const textCol = Math.min(720 + 28, w * 0.55);
+        const gap = w - textCol - 28;
+        if (gap > 180) {
+          const cx = textCol + gap * 0.55;
+          const cy = h * 0.45;
+          const scale = Math.max(120, Math.min(gap * 0.48, h * 0.42, 320));
+          const rotY = t * 0.16 + pointer.x * 0.5;
+          const rotX = 0.28 + pointer.y * 0.25;
+          const focal = 2.6;
+
+          function project(p) {
+            const x1 = p.x * Math.cos(rotY) - p.z * Math.sin(rotY);
+            const z1 = p.x * Math.sin(rotY) + p.z * Math.cos(rotY);
+            const y1 = p.y * Math.cos(rotX) - z1 * Math.sin(rotX);
+            const z2 = p.y * Math.sin(rotX) + z1 * Math.cos(rotX);
+            const depth = focal / (focal + z2);
+            return { sx: cx + x1 * depth * scale, sy: cy + y1 * depth * scale, depth };
+          }
+          function projectSpun(p, spin) {
+            const sx0 = p.x * Math.cos(spin) - p.y * Math.sin(spin);
+            const sy0 = p.x * Math.sin(spin) + p.y * Math.cos(spin);
+            return project({ x: sx0, y: sy0, z: p.z });
+          }
+
+          const projected = spherePts.map(p => ({ pp: project(p), src: p }));
+
+          ctx.lineWidth = 0.6;
+          for (let i = 0; i < projected.length; i++) {
+            const a = projected[i].pp;
+            if (a.depth < 1.04) continue;
+            for (let j = i + 1; j < projected.length; j++) {
+              const b = projected[j].pp;
+              if (b.depth < 1.04) continue;
+              const d = Math.hypot(a.sx - b.sx, a.sy - b.sy);
+              if (d < 42) {
+                ctx.strokeStyle = `rgba(33, 37, 41, ${0.16 * (1 - d / 42)})`;
+                ctx.beginPath();
+                ctx.moveTo(a.sx, a.sy);
+                ctx.lineTo(b.sx, b.sy);
+                ctx.stroke();
+              }
+            }
+          }
+
+          projected.forEach(({ pp, src }) => {
+            const twinkle = 0.5 + 0.5 * Math.sin(t * src.speed + src.tw);
+            const r = Math.max(0.4, pp.depth * 1.7);
+            ctx.beginPath();
+            ctx.arc(pp.sx, pp.sy, r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(33, 37, 41, ${Math.min(1, pp.depth * 0.6) * twinkle})`;
+            ctx.fill();
+          });
+
+          [outerRingPts, ...trianglePts].forEach((ptsSet, idx) => {
+            const proj = ptsSet.map(project);
+            ctx.beginPath();
+            proj.forEach((pp, i) => { if (i === 0) ctx.moveTo(pp.sx, pp.sy); else ctx.lineTo(pp.sx, pp.sy); });
+            ctx.closePath();
+            ctx.strokeStyle = idx === 0 ? 'rgba(33, 37, 41, 0.22)' : 'rgba(33, 37, 41, 0.18)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          });
+
+          // pentagram, counter-spinning inside the hexagram
+          const pentaProj = pentagramPts.map(p => projectSpun(p, -rotY * 1.6));
+          ctx.beginPath();
+          pentaProj.forEach((pp, i) => { if (i === 0) ctx.moveTo(pp.sx, pp.sy); else ctx.lineTo(pp.sx, pp.sy); });
+          ctx.closePath();
+          ctx.strokeStyle = 'rgba(33, 37, 41, 0.2)';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          // instrument-dial ticks around the outer ring
+          tickPts.forEach(([p1, p2]) => {
+            const a = project(p1), b = project(p2);
+            ctx.strokeStyle = 'rgba(33, 37, 41, 0.16)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(a.sx, a.sy);
+            ctx.lineTo(b.sx, b.sy);
+            ctx.stroke();
+          });
+
+          // tiny sun-glyph at the exact center
+          const glyphProj = centerGlyphPts.map(project);
+          ctx.beginPath();
+          glyphProj.forEach((pp, i) => { if (i === 0) ctx.moveTo(pp.sx, pp.sy); else ctx.lineTo(pp.sx, pp.sy); });
+          ctx.strokeStyle = 'rgba(33, 37, 41, 0.32)';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          const origin = project({ x: 0, y: 0, z: 0 });
+          ctx.beginPath();
+          ctx.arc(origin.sx, origin.sy, 1.4, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(33, 37, 41, 0.4)';
+          ctx.fill();
+        }
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  })();
 </script>
 </body>
 </html>

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LidGenius — Alison Zhang</title>
+  <style>
+    @font-face {
+      font-family: 'Studio Feixen Sans Writer Book';
+      src: url('fonts/StudioFeixenSans-WriterBook.woff2') format('woff2'),
+           url('fonts/StudioFeixenSans-WriterBook.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Studio Feixen Sans Book';
+      src: url('fonts/StudioFeixenSans-Book.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 62.5%; min-height: 100vh; scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Studio Feixen Sans Writer Book', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 400;
+      line-height: 1.1875;
+      color: #212529;
+      background-color: #F5F5F7;
+    }
+
+    @media (min-width: 860px) {
+      body { font-size: 25px; line-height: 30px; }
+    }
+
+    a { color: inherit; }
+
+    .nav-primary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #000;
+      padding: 10px 20px;
+    }
+
+    .nav-brand {
+      font-size: 1.8rem;
+      font-weight: 400;
+      line-height: 1;
+      color: #212529;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+    }
+    .nav-brand:hover { color: #6c757d; }
+
+    .nav-action {
+      display: inline-flex;
+      align-items: center;
+      background: #17181a;
+      color: #F5F5F7;
+      border-radius: 12px;
+      padding: 14px 30px;
+      font-size: 1.5rem;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .nav-action:hover { background: #000; }
+
+    .nav-secondary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #000;
+      padding: 9px 20px;
+      font-size: 1.4rem;
+      color: #6c757d;
+    }
+    .nav-secondary a { text-decoration: none; }
+    .nav-secondary a:hover { color: #212529; }
+
+    .case-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 48px 28px 80px;
+    }
+
+    .case-eyebrow {
+      font-size: 1.0rem;
+      line-height: 11px;
+      color: #6c757d;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 20px;
+    }
+
+    .case-title {
+      font-size: 44px;
+      line-height: 48px;
+      font-weight: 400;
+      color: #212529;
+      margin-bottom: 20px;
+    }
+
+    .case-subtitle {
+      font-size: 22px;
+      line-height: 34px;
+      font-weight: 400;
+      color: #212529;
+      max-width: 640px;
+      margin-bottom: 36px;
+    }
+
+    .case-meta {
+      display: flex;
+      flex-wrap: wrap;
+      border-top: 1px solid #000;
+      border-bottom: 1px solid #000;
+      margin-bottom: 40px;
+    }
+    .meta-item {
+      flex: 1 1 140px;
+      padding: 14px 16px;
+      border-right: 1px solid #000;
+    }
+    .meta-item:last-child { border-right: none; }
+    .meta-label {
+      font-size: 1.0rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6c757d;
+      margin-bottom: 6px;
+    }
+    .meta-value { font-size: 1.4rem; line-height: 1.4; }
+
+    .case-image {
+      position: relative;
+      width: 100%;
+      height: 520px;
+      border: 1px solid #000;
+      overflow: hidden;
+      margin-bottom: 56px;
+      background: #1d3fae;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .case-image img {
+      width: auto;
+      height: 92%;
+      object-fit: contain;
+      display: block;
+      border-radius: 16px;
+      filter: drop-shadow(0 10px 24px rgba(0,0,0,0.25));
+    }
+
+    /* Big centered floating CTA — sits directly on top of the hero
+       screenshot, the way the reference floats its consultation
+       pill dead-center over the headline image. */
+    .case-image-cta {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      width: 148px;
+      height: 148px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: rgba(23, 24, 26, 0.92);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      color: #F5F5F7;
+      font-size: 1.4rem;
+      line-height: 1.3;
+      letter-spacing: 0.01em;
+      text-decoration: none;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+      transition: transform 0.15s, background 0.15s;
+    }
+    .case-image-cta:hover {
+      background: #000;
+      transform: translate(-50%, -50%) scale(1.04);
+    }
+    @media (max-width: 700px) {
+      .case-image-cta { width: 108px; height: 108px; font-size: 1.2rem; }
+      .case-image { height: 420px; }
+    }
+
+    .case-section { margin-bottom: 56px; }
+    .section-label {
+      font-size: 1.0rem;
+      line-height: 11px;
+      color: #6c757d;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+    }
+    .section-heading {
+      font-size: 28px;
+      line-height: 34px;
+      margin-bottom: 16px;
+    }
+    .section-body {
+      font-size: 18px;
+      line-height: 29px;
+      color: #212529;
+      max-width: 680px;
+    }
+    .section-body.emphasis {
+      font-size: 20px;
+      line-height: 31px;
+      border-left: 2px solid #000;
+      padding-left: 20px;
+      color: #212529;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid #000;
+      border-left: 1px solid #000;
+    }
+    .feature-card {
+      border-right: 1px solid #000;
+      border-bottom: 1px solid #000;
+      padding: 22px 18px;
+      background: #fff;
+    }
+    .feature-num {
+      font-size: 1.0rem;
+      color: #6c757d;
+      margin-bottom: 12px;
+    }
+    .feature-title {
+      font-size: 1.7rem;
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+    .feature-desc {
+      font-size: 1.4rem;
+      line-height: 1.5;
+      color: #6c757d;
+    }
+
+    .case-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 24px;
+      border-top: 1px solid #000;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .case-link {
+      font-size: 1.0rem;
+      line-height: 11px;
+      color: #6c757d;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .case-link:hover { color: #212529; }
+
+    @media (max-width: 700px) {
+      .case-title { font-size: 32px; line-height: 38px; }
+      .case-subtitle { font-size: 1.8rem; line-height: 1.6; }
+      .meta-item { flex: 1 1 50%; border-bottom: 1px solid #000; }
+      .feature-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav-primary">
+    <a class="nav-brand" href="index.html">Alison Zhang</a>
+  </nav>
+
+  <div class="nav-secondary">
+    <span><a href="index.html">Vibe Coding Projects</a> / LidGenius</span>
+    <a href="index.html">← Back</a>
+  </div>
+
+  <main class="case-container">
+    <p class="case-eyebrow">Vibe Coding Project — 05 / Mobile</p>
+    <h1 class="case-title">LidGenius</h1>
+    <p class="case-subtitle">
+      A 3D-printable lid customizer with a live wireframe visualization, from splash screen straight to the print queue.
+    </p>
+
+    <div class="case-meta">
+      <div class="meta-item">
+        <div class="meta-label">Role</div>
+        <div class="meta-value">Design &amp; Development</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Stack</div>
+        <div class="meta-value">HTML, CSS, Three.js</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Type</div>
+        <div class="meta-value">Mobile App</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Focus</div>
+        <div class="meta-value">Print · 3D</div>
+      </div>
+    </div>
+
+    <div class="case-image">
+      <img src="lidgenius-thumb.png" alt="LidGenius splash screen with animated wireframe" />
+      <a class="case-image-cta" href="lidgenius-live.html" target="_blank" rel="noopener noreferrer">View<br/>Live Site</a>
+    </div>
+
+    <section class="case-section">
+      <p class="section-label">The Problem</p>
+      <h2 class="section-heading">Printing feels like a black box</h2>
+      <p class="section-body">
+        Most consumer 3D-printing tools show a progress bar and nothing else — you tap print and wait, with no sense of what's actually happening inside the machine. For something as small and personal as a replacement lid, that gap between action and object makes people distrust the result before it's even printed. Off-the-shelf lids rarely match odd cup shapes or discontinued products in the first place, so the moment someone finally lands on a fitting design, the last thing it should feel like is a black box.
+      </p>
+    </section>
+
+    <section class="case-section">
+      <p class="section-label">The Approach</p>
+      <h2 class="section-heading">Make the wait feel like proof</h2>
+      <p class="section-body">
+        Instead of hiding the process behind a spinner, LidGenius exposes it. A live wireframe traces the lid's geometry the moment the screen loads, and ion particles travel along each wire as a visual stand-in for the print head actually tracing that path. The bet: if you can watch the shape resolve in real time, the object that comes out the other end feels earned rather than conjured — the animation is doing trust-building work, not just decoration.
+      </p>
+    </section>
+
+    <section class="case-section">
+      <p class="section-label">Features</p>
+      <h2 class="section-heading">What it does</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-num">01</div>
+          <div class="feature-title">Wire &amp; Ion Render</div>
+          <div class="feature-desc">A live Three.js wireframe traces the lid's geometry in real time, with glowing ion particles marking the print path.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-num">02</div>
+          <div class="feature-title">One-Tap Printing</div>
+          <div class="feature-desc">Print is a single tap, with no size pickers or material dropdowns competing for attention — those choices live upstream, before this screen.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-num">03</div>
+          <div class="feature-title">Responsive Canvas</div>
+          <div class="feature-desc">The wireframe scene resizes and reacts to pointer movement, staying legible and smooth across phone and desktop viewports.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="case-section">
+      <p class="section-label">How it works</p>
+      <p class="section-body">
+        Open the app and the wireframe renders instantly around the LidGenius mark, with ion particles drifting along each wire. Tap Start printing to queue the design — the same animated canvas that drew you in becomes the live status view for your print.
+      </p>
+    </section>
+
+    <section class="case-section">
+      <p class="section-label">What's Next</p>
+      <h2 class="section-heading">Turning the wireframe into real feedback</h2>
+      <p class="section-body">
+        Right now the wire pattern is decorative — a fixed animation rather than a rendering of the actual uploaded lid. The next version would tie the wireframe directly to a scanned or uploaded cup profile, so what you watch trace on screen is literally the shape being sent to the printer, and the "proof" the animation offers becomes true, not just implied.
+      </p>
+    </section>
+
+    <div class="case-footer">
+      <a class="case-link" href="index.html">← All Projects</a>
+      <a class="case-link" href="lidgenius-live.html" target="_blank" rel="noopener noreferrer">Visit Live Site ↗</a>
+    </div>
+  </main>
+
+</body>
+</html>
