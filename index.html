@@ -926,91 +926,39 @@
     let w = 0, h = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
     let pointer = { x: 0, y: 0 };
 
-    // Sphere shell of points (with radius jitter, so it reads as a
-    // cloud rather than a perfect ball).
-    const SPHERE_N = 240;
+    // Dense star field, distributed through a soft 3D volume (not a
+    // hollow shell) so it reads as a drifting dust cloud rather than
+    // a wireframe ball — matching the reference gif's density.
+    const STAR_FIELD_N = 420;
     const spherePts = [];
-    for (let i = 0; i < SPHERE_N; i++) {
+    for (let i = 0; i < STAR_FIELD_N; i++) {
       const u = Math.random() * 2 - 1;
       const theta = Math.random() * Math.PI * 2;
-      const rad = Math.sqrt(1 - u * u);
-      const jitter = 0.82 + Math.random() * 0.32;
+      const rad = Math.sqrt(1 - u * u) * Math.cbrt(Math.random());
       spherePts.push({
-        x: rad * Math.cos(theta) * jitter,
-        y: u * jitter,
-        z: rad * Math.sin(theta) * jitter,
+        x: rad * Math.cos(theta) * 1.15,
+        y: u * 1.15,
+        z: rad * Math.sin(theta) * 1.15,
         tw: Math.random() * Math.PI * 2,
-        speed: 0.4 + Math.random() * 0.8
+        speed: 0.4 + Math.random() * 0.8,
+        small: true
       });
     }
 
-    // Hexagram (two overlapping triangles) as a flat ring of points
-    // in the XY plane — an occult sigil riding inside the sphere.
-    // Kept as two separate point loops so they render as two closed
-    // triangles rather than one path bridging both.
-    function makeTriangle(offset) {
-      const pts = [];
-      for (let i = 0; i < 3; i++) {
-        const a1 = offset + (i / 3) * Math.PI * 2 - Math.PI / 2;
-        const a2 = offset + ((i + 1) / 3) * Math.PI * 2 - Math.PI / 2;
-        for (let s = 0; s < 10; s++) {
-          const tt = s / 10;
-          pts.push({
-            x: (Math.cos(a1) * (1 - tt) + Math.cos(a2) * tt) * 0.92,
-            y: (Math.sin(a1) * (1 - tt) + Math.sin(a2) * tt) * 0.92,
-            z: 0
-          });
-        }
-      }
-      return pts;
-    }
-    const trianglePts = [makeTriangle(0), makeTriangle(Math.PI)];
-
-    // A second, smaller occult figure — a 5-pointed star (pentagram),
-    // made by connecting every 2nd vertex of a pentagon — nested
-    // inside the hexagram and counter-spun for a "gears within gears"
-    // instrument feel.
-    function makeStarPolygon(n, skip, radius) {
-      const verts = [];
-      for (let i = 0; i < n; i++) {
-        const a = -Math.PI / 2 + (i / n) * Math.PI * 2;
-        verts.push({ x: Math.cos(a) * radius, y: Math.sin(a) * radius });
-      }
-      const pts = [];
-      for (let i = 0; i < n; i++) {
-        const v1 = verts[i];
-        const v2 = verts[(i + skip) % n];
-        for (let s = 0; s < 10; s++) {
-          const tt = s / 10;
-          pts.push({ x: v1.x * (1 - tt) + v2.x * tt, y: v1.y * (1 - tt) + v2.y * tt, z: 0 });
-        }
-      }
-      return pts;
-    }
-    const pentagramPts = makeStarPolygon(5, 2, 0.62);
-
-    const outerRingPts = [];
-    for (let i = 0; i < 48; i++) {
-      const a = (i / 48) * Math.PI * 2;
-      outerRingPts.push({ x: Math.cos(a) * 1.18, y: Math.sin(a) * 1.18, z: 0 });
-    }
-
-    // Instrument-dial tick marks just outside the ring, plus a tiny
-    // sun-glyph (circle + dot) at the very center.
-    const tickPts = [];
-    for (let i = 0; i < 32; i++) {
-      const a = (i / 32) * Math.PI * 2;
-      const long = i % 4 === 0;
-      tickPts.push([
-        { x: Math.cos(a) * 1.2, y: Math.sin(a) * 1.2, z: 0 },
-        { x: Math.cos(a) * (long ? 1.32 : 1.26), y: Math.sin(a) * (long ? 1.32 : 1.26), z: 0 }
-      ]);
-    }
-    const centerGlyphPts = [];
-    for (let i = 0; i <= 24; i++) {
-      const a = (i / 24) * Math.PI * 2;
-      centerGlyphPts.push({ x: Math.cos(a) * 0.05, y: Math.sin(a) * 0.05, z: 0 });
-    }
+    // The actual Gemini constellation — Castor and Pollux's two
+    // star-chains — as named points connected by lines, like the
+    // reference photo, riding inside the same rotating dust cloud.
+    const constellationPts = [
+      { x: -0.62, y: -0.98, z: 0.15 },  // 0 Castor (head)
+      { x: -0.80, y: -0.46, z: 0.05 },  // 1
+      { x: 0.62, y: -0.18, z: -0.1 },   // 2
+      { x: 0.98, y: 0.10, z: -0.2 },    // 3 Pollux cluster
+      { x: 1.16, y: 0.12, z: -0.22 },   // 4 Pollux cluster
+      { x: -0.28, y: 0.34, z: 0.1 },    // 5
+      { x: 0.10, y: 0.56, z: 0.05 },    // 6
+      { x: 0.68, y: 1.02, z: -0.05 }    // 7 (foot)
+    ].map(p => ({ ...p, tw: Math.random() * Math.PI * 2 }));
+    const constellationLines = [[0, 1], [0, 2], [2, 3], [3, 4], [1, 5], [5, 6], [6, 7]];
 
     function resize() {
       const rect = container.getBoundingClientRect();
@@ -1057,83 +1005,42 @@
             const depth = focal / (focal + z2);
             return { sx: cx + x1 * depth * scale, sy: cy + y1 * depth * scale, depth };
           }
-          function projectSpun(p, spin) {
-            const sx0 = p.x * Math.cos(spin) - p.y * Math.sin(spin);
-            const sy0 = p.x * Math.sin(spin) + p.y * Math.cos(spin);
-            return project({ x: sx0, y: sy0, z: p.z });
-          }
-
-          const projected = spherePts.map(p => ({ pp: project(p), src: p }));
-
-          ctx.lineWidth = 0.6;
-          for (let i = 0; i < projected.length; i++) {
-            const a = projected[i].pp;
-            if (a.depth < 1.04) continue;
-            for (let j = i + 1; j < projected.length; j++) {
-              const b = projected[j].pp;
-              if (b.depth < 1.04) continue;
-              const d = Math.hypot(a.sx - b.sx, a.sy - b.sy);
-              if (d < 42) {
-                ctx.strokeStyle = `rgba(33, 37, 41, ${0.16 * (1 - d / 42)})`;
-                ctx.beginPath();
-                ctx.moveTo(a.sx, a.sy);
-                ctx.lineTo(b.sx, b.sy);
-                ctx.stroke();
-              }
-            }
-          }
-
-          projected.forEach(({ pp, src }) => {
+          // plain dust field — unconnected, like the background stars
+          // in the reference photo (only the constellation gets lines)
+          spherePts.forEach(src => {
+            const pp = project(src);
             const twinkle = 0.5 + 0.5 * Math.sin(t * src.speed + src.tw);
-            const r = Math.max(0.4, pp.depth * 1.7);
+            const r = Math.max(0.35, pp.depth * 1.3);
             ctx.beginPath();
             ctx.arc(pp.sx, pp.sy, r, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(33, 37, 41, ${Math.min(1, pp.depth * 0.6) * twinkle})`;
+            ctx.fillStyle = `rgba(33, 37, 41, ${Math.min(1, pp.depth * 0.5) * twinkle})`;
             ctx.fill();
           });
 
-          [outerRingPts, ...trianglePts].forEach((ptsSet, idx) => {
-            const proj = ptsSet.map(project);
-            ctx.beginPath();
-            proj.forEach((pp, i) => { if (i === 0) ctx.moveTo(pp.sx, pp.sy); else ctx.lineTo(pp.sx, pp.sy); });
-            ctx.closePath();
-            ctx.strokeStyle = idx === 0 ? 'rgba(33, 37, 41, 0.22)' : 'rgba(33, 37, 41, 0.18)';
-            ctx.lineWidth = 1;
-            ctx.stroke();
-          });
-
-          // pentagram, counter-spinning inside the hexagram
-          const pentaProj = pentagramPts.map(p => projectSpun(p, -rotY * 1.6));
-          ctx.beginPath();
-          pentaProj.forEach((pp, i) => { if (i === 0) ctx.moveTo(pp.sx, pp.sy); else ctx.lineTo(pp.sx, pp.sy); });
-          ctx.closePath();
-          ctx.strokeStyle = 'rgba(33, 37, 41, 0.2)';
+          // the actual Gemini constellation — bright named stars
+          // connected by thin lines, like the reference photo
+          const starProj = constellationPts.map(project);
           ctx.lineWidth = 1;
-          ctx.stroke();
-
-          // instrument-dial ticks around the outer ring
-          tickPts.forEach(([p1, p2]) => {
-            const a = project(p1), b = project(p2);
-            ctx.strokeStyle = 'rgba(33, 37, 41, 0.16)';
-            ctx.lineWidth = 1;
+          ctx.strokeStyle = 'rgba(33, 37, 41, 0.4)';
+          constellationLines.forEach(([ia, ib]) => {
+            const a = starProj[ia], b = starProj[ib];
             ctx.beginPath();
             ctx.moveTo(a.sx, a.sy);
             ctx.lineTo(b.sx, b.sy);
             ctx.stroke();
           });
-
-          // tiny sun-glyph at the exact center
-          const glyphProj = centerGlyphPts.map(project);
-          ctx.beginPath();
-          glyphProj.forEach((pp, i) => { if (i === 0) ctx.moveTo(pp.sx, pp.sy); else ctx.lineTo(pp.sx, pp.sy); });
-          ctx.strokeStyle = 'rgba(33, 37, 41, 0.32)';
-          ctx.lineWidth = 1;
-          ctx.stroke();
-          const origin = project({ x: 0, y: 0, z: 0 });
-          ctx.beginPath();
-          ctx.arc(origin.sx, origin.sy, 1.4, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(33, 37, 41, 0.4)';
-          ctx.fill();
+          constellationPts.forEach((src, i) => {
+            const pp = starProj[i];
+            const twinkle = 0.7 + 0.3 * Math.sin(t * 0.6 + src.tw);
+            const r = Math.max(1.4, pp.depth * 2.6) * twinkle;
+            ctx.beginPath();
+            ctx.arc(pp.sx, pp.sy, r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(20, 22, 26, ${Math.min(1, pp.depth * 0.85)})`;
+            ctx.shadowColor = 'rgba(60, 65, 75, 0.5)';
+            ctx.shadowBlur = 4;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+          });
         }
       }
       requestAnimationFrame(frame);
