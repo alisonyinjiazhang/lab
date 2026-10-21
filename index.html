@@ -33,6 +33,8 @@
       --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
       --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
       --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+      --accent: #5b5fa8;              /* muted indigo — used sparingly, on hover/interactive states only */
+      --line-soft: rgba(0, 0, 0, 0.14); /* internal dividers — the outer card/nav frame stays solid black */
     }
 
     /* ── Body — exact Brentano values ── */
@@ -72,10 +74,10 @@
     .nav-brand {
       font-size: 1.8rem;   /* 18px */
       font-weight: 400;
-      line-height: 1;
+      line-height: 1.25;
       color: #212529;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
+      letter-spacing: 0.01em;
+      max-width: min(64rem, calc(100% - 16rem));
     }
 
     .nav-action {
@@ -110,8 +112,9 @@
     ════════════════════════════════ */
     .nav-secondary {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
       border-bottom: 1px solid #000;
       padding: 9px 20px;
     }
@@ -144,6 +147,7 @@
       width: calc(100% / 3);
       height: 100%;
       background: #17181a;
+      border-top: 2px solid var(--accent);
       pointer-events: none;
       z-index: 0;
       transition: transform 250ms var(--ease-in-out);
@@ -192,7 +196,7 @@
       margin-left: 7px;
     }
     .tabs-base .tab:not(:last-child) {
-      border-right: 1px solid #000;
+      border-right: 1px solid var(--line-soft);
     }
     .tab[aria-selected="true"] {
       color: #F5F5F7;
@@ -209,7 +213,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      border-left: 1px solid #000;
+      border-left: 1px solid var(--line-soft);
       color: #6c757d;
       cursor: pointer;
       line-height: 1;
@@ -234,24 +238,77 @@
       scroll-margin-top: 12px;
       outline: none;
       background: #F5F5F7;
-      overflow: hidden;
     }
 
-    #about-particle-canvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      max-width: none;
-      display: block;
-      z-index: 0;
-      pointer-events: none;
-    }
-
-    .bio-panel > *:not(#about-particle-canvas) {
+    .bio-panel > * {
       position: relative;
-      z-index: 1;
       max-width: 720px;
+    }
+
+    /* One-stroke illustration — draws itself in, stroke by stroke, the first
+       time it scrolls into view (IntersectionObserver below).
+       Narrow: stacked above the text. Medium: floats in the text column
+       (not much spare room, so the copy wraps around it). Wide: the text
+       column tops out at 720px and there's real space past it, so the
+       illustration moves out there instead of crowding the copy. */
+    .bio-intro {
+      overflow: hidden; /* new block formatting context, so this clears the float cleanly */
+    }
+
+    .bio-signature {
+      float: right;
+      width: clamp(240px, 36vw, 380px);
+      margin: 0 0 20px 28px;
+    }
+
+    @media (max-width: 700px) {
+      .bio-signature {
+        float: none;
+        width: min(100%, 260px);
+        margin: 0 0 24px;
+      }
+    }
+
+    @media (min-width: 1280px) {
+      .bio-intro {
+        overflow: visible;
+        /* .bio-panel > * sets position:relative, which would make this the
+           positioning context for .bio-signature below instead of the full
+           panel — opt back out so the illustration escapes the 720px column. */
+        position: static;
+      }
+      .bio-signature {
+        float: none;
+        position: absolute;
+        top: 130px;
+        left: 750px; /* 720px text column + a 30px gap, so it sits close instead of drifting into the margin */
+        width: clamp(300px, 26vw, 420px);
+        margin: 0;
+      }
+    }
+
+    .bio-signature svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .bio-signature .sig-stroke {
+      fill: none;
+      stroke: #212529;
+      stroke-width: 4.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+    }
+
+    .bio-signature.is-drawn .sig-stroke {
+      animation: sig-draw 1.8s var(--ease-out) forwards;
+    }
+
+    @keyframes sig-draw {
+      to { stroke-dashoffset: 0; }
     }
 
     /* Eyebrow: .text-sm smallest = 10px/11px */
@@ -264,10 +321,11 @@
       margin-bottom: 24px;
     }
 
-    /* Name: .text-xl-max = 40px/44px */
+    /* Name: .text-xl-max = 40px/44px, fluid so it scales down gracefully on narrow viewports */
     .bio-name {
-      font-size: 40px;
-      line-height: 44px;
+      font-size: clamp(2.8rem, 5vw, 4.4rem);
+      line-height: 1.08;
+      letter-spacing: -0.015em;
       font-weight: 400;
       color: #212529;
       margin-bottom: 28px;
@@ -305,7 +363,7 @@
       display: flex;
       gap: 18px;
       padding-top: 24px;
-      border-top: 1px solid #000;
+      border-top: 1px solid var(--line-soft);
     }
 
     .bio-link {
@@ -322,8 +380,9 @@
     .bio-panel p a {
       color: #000;
       text-decoration: underline;
+      transition: color 150ms ease;
     }
-    .bio-panel p a:hover { color: #6c757d; }
+    .bio-panel p a:hover { color: var(--accent); }
 
     /* ── RIGHT: Projects ── */
     .projects-panel {
@@ -373,7 +432,7 @@
       cursor: pointer;
       background: #fff;
       overflow: hidden;
-      transition: background-color 180ms ease, transform 160ms var(--ease-out);
+      transition: background-color 180ms ease, border-color 180ms ease, transform 160ms var(--ease-out);
     }
     .project-card:active:not(.placeholder) { transform: scale(0.97); }
 
@@ -383,13 +442,14 @@
       align-items: baseline;
       justify-content: space-between;
       padding: 8px 10px 7px;
-      border-bottom: 1px solid #000;
+      border-bottom: 1px solid var(--line-soft);
     }
 
     /* Card name: .text-base = 16px/17px */
     .card-name {
       font-size: 1.6rem;
       line-height: 17px;
+      letter-spacing: -0.01em;
       color: #212529;
     }
 
@@ -401,6 +461,32 @@
       flex-shrink: 0;
     }
 
+    /* Achievement badge: overlaid on the card image, not squeezed into
+       the header row, so it stays legible at any text length. */
+    .card-achievement {
+      position: absolute;
+      z-index: 1;
+      left: 8px;
+      bottom: 8px;
+      max-width: calc(100% - 16px);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #F5F5F7;
+      color: #17181a;
+      border: 1px solid #000;
+      font-size: 1.1rem;
+      font-weight: 600;
+      line-height: 1.35;
+      letter-spacing: 0.01em;
+      padding: 5px 9px;
+    }
+    .card-achievement-mark {
+      flex-shrink: 0;
+      font-size: 1rem;
+      color: var(--accent);
+    }
+
     /* Large image area — fills middle of card, like product image */
     .card-image {
       position: relative;
@@ -408,7 +494,7 @@
       aspect-ratio: 4 / 3;
       overflow: hidden;
       background: #f5f5f5;
-      border-bottom: 1px solid #000;
+      border-bottom: 1px solid var(--line-soft);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -489,13 +575,14 @@
     }
 
     @media (hover: hover) and (pointer: fine) {
-      .nav-action:hover { color: #6c757d; }
-      .nav-action:hover .icon-circle { transform: translateX(4px); }
+      .nav-action:hover { color: var(--accent); }
+      .nav-action:hover .icon-circle { border-color: var(--accent); color: var(--accent); transform: translateX(4px); }
       .tabs-base .tab:hover:not([aria-selected="true"]),
       .tab-end:hover { color: #212529; }
-      .bio-link:hover { color: #212529; }
+      .bio-link:hover { color: var(--accent); }
       .project-card:hover:not(.placeholder) {
         background-color: #f8f8f8;
+        border-color: var(--accent);
       }
     }
 
@@ -510,6 +597,7 @@
       }
       .nav-action:hover .icon-circle { transform: none; }
       .card-image img { transition: none; }
+      .bio-signature .sig-stroke { stroke-dashoffset: 0; animation: none; }
     }
   </style>
 </head>
@@ -527,7 +615,7 @@
 
   <!-- Nav 2 -->
   <div class="nav-secondary">
-    <span class="nav-tagline">Product designer · design engineer · previously Chase, Coach, BitGo, Bloomberg</span>
+    <span class="nav-tagline">Senior product designer · design engineer · previously Chase, Coach, BitGo, Bloomberg</span>
   </div>
 
   <!-- Tabs -->
@@ -559,21 +647,36 @@
 
     <!-- Left: Bio -->
     <section class="bio-panel" id="bio-panel" tabindex="-1">
-      <canvas id="about-particle-canvas"></canvas>
       <p class="bio-eyebrow">Introduction</p>
       <h1 class="bio-name">Alison Zhang</h1>
+      <div class="bio-intro">
+      <!-- Signature illustration: one-stroke figure at a laptop. Floats right; body text wraps around it. Draws in, stroke by stroke, once scrolled into view. -->
+      <figure class="bio-signature" aria-hidden="true">
+        <svg viewBox="179 56 385 520" xmlns="http://www.w3.org/2000/svg">
+          <path class="sig-stroke" style="animation-delay:0.0s" pathLength="1" d="M408.5,115.1C408.5,115.1 405.8,110.2 404.7,110.2"/>
+          <path class="sig-stroke" style="animation-delay:0.45s" pathLength="1" d="M401.0,324.3C401.0,324.3 400.4,324.9 404.7,322.5C409.0,320.1 413.4,323.3 413.4,323.3C413.4,323.3 418.5,325.7 418.5,325.7C419.0,325.9 419.5,326.1 420.0,326.2C421.5,326.6 422.3,326.0 421.7,324.4C421.1,322.6 420.8,320.8 421.0,319.0C421.2,315.1 422.7,313.7 426.7,314.3C429.3,314.7 429.6,314.0 429.2,311.7C428.6,307.5 427.5,303.5 426.4,299.5C423.5,288.4 420.8,277.2 421.1,265.6C421.3,256.4 422.1,247.3 423.7,238.3C425.2,229.6 429.7,222.5 435.4,216.0C439.3,211.7 443.0,207.2 447.1,203.0C451.1,198.8 452.3,193.9 452.0,188.4C452.0,187.7 452.0,186.9 451.2,186.7C450.5,186.6 450.1,187.2 449.6,187.7C449.5,187.8 449.4,188.0 449.3,188.1C444.5,193.6 444.5,193.5 438.5,190.1C437.0,189.3 435.4,188.7 434.0,188.0C430.2,185.9 430.0,182.7 433.5,180.2C434.3,179.6 435.2,179.2 436.1,178.8C437.0,178.3 438.2,177.9 437.9,176.7C437.7,175.7 436.4,175.6 435.5,175.3C430.6,174.1 428.7,175.4 428.3,180.3C428.3,181.1 428.1,182.0 427.9,182.8C427.7,183.4 427.1,183.9 426.4,183.9C425.4,184.0 424.4,183.5 424.5,182.7C425.0,178.1 421.6,176.7 418.6,174.8C417.2,174.0 416.3,172.4 415.0,171.4C411.6,168.5 410.9,165.0 412.8,161.1C413.7,159.2 413.4,157.6 412.4,155.9C411.5,154.5 410.7,153.1 409.8,151.7C404.4,143.3 402.4,133.9 401.0,124.3C400.3,119.4 401.1,114.6 404.4,110.6C405.3,109.5 405.7,108.3 405.7,107.0C405.8,106.5 405.8,106.0 405.8,105.5C406.3,91.4 414.0,82.8 426.4,77.5C438.3,72.5 450.3,72.3 462.4,76.9C469.8,79.7 476.9,82.8 482.9,88.1C485.4,90.2 488.3,91.4 491.5,91.7C496.5,92.0 499.3,94.9 501.0,99.3C503.6,105.7 505.1,112.3 506.2,119.1C507.5,127.2 510.8,134.3 516.3,140.5C520.0,144.7 522.4,149.5 523.6,155.0C524.4,158.9 524.6,162.7 523.1,166.3C521.6,170.3 522.2,173.8 524.6,177.2C529.8,184.5 530.4,192.6 528.6,201.1C528.0,203.5 527.4,205.9 526.8,208.4C525.9,211.8 526.8,214.6 529.7,216.7C533.1,219.2 536.5,221.6 539.8,224.1C543.7,227.1 544.0,228.5 541.6,232.9C541.2,233.6 540.8,234.4 540.3,235.0C533.2,242.6 533.8,251.7 534.7,261.0C535.0,263.3 535.4,265.6 536.3,267.8C540.3,277.6 541.8,287.9 543.3,298.3C543.3,298.3 538.2,337.7 542.6,338.9C547.0,340.1 548.3,334.2 548.3,334.2C546.0,331.1 543.5,330.8 540.1,331.8C536.8,332.7 525.8,336.2 524.3,336.6C521.2,337.9 524.6,346.5 525.8,349.6C527.5,353.6 528.8,357.8 528.5,362.2C528.2,366.4 526.7,368.2 522.5,369.0C514.1,370.5 505.8,371.0 497.5,367.6C490.7,364.8 483.6,362.8 476.6,360.6C468.5,358.1 460.1,359.1 451.8,358.8C449.8,358.7 447.0,359.6 446.0,357.1C444.9,354.6 447.9,353.6 449.2,352.1C449.4,351.8 449.7,351.6 449.9,351.4C455.3,346.4 454.4,340.6 447.7,337.3C445.7,336.4 443.6,335.9 441.5,335.8C440.1,335.8 434.0,336.3 432.2,335.4C427.2,332.9 422.1,330.4 416.9,328.1C408.3,324.2 403.3,324.3 394.2,324.2C392.7,324.2 388.2,324.6 387.0,327.3C386.0,330.4 384.2,333.1 380.9,334.7C377.6,336.8 374.6,339.1 372.4,342.4C371.4,344.0 370.5,345.6 371.0,347.5C371.4,349.0 372.5,349.5 373.5,348.3C375.1,346.6 376.4,344.6 377.9,342.8C379.3,341.0 380.9,339.3 383.1,338.3C383.9,337.9 384.7,337.6 385.3,338.5C385.7,339.2 385.4,339.8 384.9,340.4C383.8,341.8 382.5,343.1 381.5,344.6C380.9,345.4 380.3,346.4 381.3,347.3C382.2,348.0 383.3,347.6 384.1,347.0C386.3,345.7 387.7,343.6 389.2,341.6C391.8,338.0 395.3,336.0 399.6,335.3C401.8,335.0 404.0,335.2 405.9,336.3C407.5,337.2 408.6,338.5 408.2,340.4C407.8,342.1 406.4,342.8 404.8,342.9C401.7,343.1 398.9,344.0 396.7,346.2C395.0,348.0 395.1,349.1 397.6,349.6C404.6,351.1 411.5,351.7 417.7,347.1C420.5,345.0 423.2,345.2 426.1,346.7C429.4,348.2 431.8,355.3 433.9,358.2"/>
+          <path class="sig-stroke" style="animation-delay:0.9s" pathLength="1" d="M451.8,187.2C454.1,183.3 451.5,180.6 456.7,180.9C458.2,181.0 459.8,180.0 461.3,179.2C464.0,177.6 466.7,176.0 469.3,174.2C478.7,167.6 482.4,158.1 483.3,147.2C483.3,147.1 483.3,146.9 483.3,146.7C483.0,145.2 483.6,142.6 481.8,142.5C480.4,142.4 480.8,145.0 480.7,146.3C480.6,154.4 476.9,160.7 471.1,165.9C468.8,168.0 466.2,169.7 463.0,168.1C459.3,166.3 455.4,166.0 451.4,165.7C444.0,165.1 441.9,163.4 439.9,156.2C438.1,150.2 435.1,145.6 428.7,143.9C426.4,143.4 425.8,141.9 427.0,139.8C427.4,139.1 427.7,138.3 428.0,137.5C429.5,133.2 428.5,131.2 424.6,129.0C418.3,125.5 411.2,122.8 408.5,115.1C408.4,114.9 408.3,114.8 408.2,114.7"/>
+          <path class="sig-stroke" style="animation-delay:1.35s" pathLength="1" d="M354.3,351.1C354.3,351.1 358.4,358.5 358.4,358.5C359.8,361.1 361.8,363.5 363.1,366.2C365.8,372.0 369.7,375.2 375.5,373.4C395.3,372.3 414.0,371.2 432.8,370.1C433.6,370.0 434.5,370.0 435.3,369.8C438.4,369.1 438.8,368.6 437.7,365.8C436.6,363.2 435.3,360.6 433.9,358.2"/>
+          <path class="sig-stroke" style="animation-delay:1.8s" pathLength="1" d="M416.5,151.8C416.1,149.2 415.6,146.8 414.0,144.8C413.8,144.4 413.2,144.1 412.8,144.1C412.0,144.2 411.7,144.9 411.7,145.5C411.6,148.1 412.9,150.3 414.2,152.4C414.5,153.0 415.0,154.0 415.9,153.5C416.3,153.3 416.3,152.3 416.5,151.8Z"/>
+          <path class="sig-stroke" style="animation-delay:2.25s" pathLength="1" d="M435.2,136.4C433.9,136.5 432.7,136.9 431.6,137.7C430.7,138.4 429.3,138.9 429.8,140.3C430.4,141.9 432.0,141.6 433.3,141.2C434.7,140.8 436.0,140.0 436.5,138.5C437.0,137.3 436.6,136.5 435.2,136.4Z"/>
+          <path class="sig-stroke" style="animation-delay:2.7s" pathLength="1" d="M435.2,185.7C436.8,185.4 437.4,184.0 437.6,182.5C437.7,181.6 437.1,181.0 436.1,181.0C434.4,181.2 432.6,182.9 432.9,184.1C433.1,185.3 434.0,185.6 435.2,185.7Z"/>
+          <path class="sig-stroke" style="animation-delay:3.15s" pathLength="1" d="M243.4,559.5C243.4,559.5 244.1,514.2 244.1,499.1C244.4,459.5 244.1,419.8 244.1,380.2C244.1,379.5 244.1,378.9 244.1,378.2C244.3,373.3 245.0,372.5 250.1,372.4C271.6,372.4 293.1,372.4 314.5,372.4C316.5,372.4 318.5,372.9 320.4,371.8C319.1,369.5 316.7,370.0 314.7,369.6C301.6,367.3 288.5,364.8 275.3,362.7C269.3,361.8 265.1,359.0 261.9,353.6C241.0,318.8 219.8,284.1 198.8,249.3C197.7,247.4 195.2,245.5 196.4,243.1C197.8,240.4 200.9,241.6 203.2,241.6C229.2,241.7 255.2,242.6 281.2,243.2C284.0,243.3 285.3,244.7 286.6,246.7C294.8,259.3 302.9,271.9 311.0,284.5C324.7,305.6 338.3,326.7 351.8,348.0C352.6,349.2 353.5,350.2 354.3,351.1C357.3,354.2 362.6,352.5 362.6,352.5C365.3,351.5 371.5,344.1 371.5,344.1"/>
+          <path class="sig-stroke" style="animation-delay:3.6s" pathLength="1" d="M524.3,337.1C524.3,337.1 522.2,333.7 520.9,328.2C520.0,320.8 517.7,313.6 518.0,305.0C518.5,301.5 517.7,297.2 514.7,293.8C505.7,283.8 505.2,271.9 506.5,259.5C507.3,251.4 508.3,243.3 509.0,235.2C509.3,231.6 509.1,227.9 508.8,224.2C508.3,217.9 505.4,213.2 499.2,210.8C497.5,210.2 495.8,209.4 494.3,208.5C490.0,205.9 489.1,202.9 491.0,198.3C492.3,195.3 493.8,192.3 495.1,189.2C497.1,184.5 497.5,179.7 496.3,174.6C493.9,163.9 490.6,153.4 487.2,143.0C485.1,136.5 480.6,131.4 477.6,125.5C476.6,123.5 474.6,122.9 472.5,124.0C467.8,126.3 463.5,125.0 459.1,123.1C450.7,119.6 438.4,116.4 430.6,121.4C430.6,121.4 424.8,123.9 424.6,129.0"/>
+        </svg>
+      </figure>
       <p class="bio-body">
-        For the past eight years I've worked in product design at Chase, Coach, and BitGo. By combining product strategy, design aesthetics, and front-end execution, I produce apps with complete product lifecycle from concept to deployment now with deep domain knowledge in Finance and E-commerce.
+        For nearly ten years I've worked in product design at Chase, Coach, and BitGo. By combining product strategy, design aesthetics, and front-end execution, I produce apps with complete product lifecycle from concept to deployment now with deep domain knowledge in Finance and E-commerce.
         <br/><br/>
         Growing up in the 90s shaped a visual style that balances tech brutalism with minimalist design. I am drawn to the clean lines of early digital iPod interfaces, bringing that same tactile precision into contemporary web environments through stark layouts and intentional micro-interactions.
         <br/><br/>
         Outside of work, I make <a href="https://www.youtube.com/@Nocturnalmelodic" target="_blank" rel="noopener noreferrer">music</a>.
       </p>
+      </div>
       <div class="bio-tags">
         <span class="bio-tag">Product Design</span>
         <span class="bio-tag">Design Engineering</span>
         <span class="bio-tag">Neo-Brutalism</span>
-        <span class="bio-tag">Vibe Coding</span>
+        <span class="bio-tag">Front-end Prototyping</span>
         <span class="bio-tag">CSS</span>
       </div>
       <div class="bio-links">
@@ -582,9 +685,84 @@
       </div>
     </section>
 
+    <!-- Right: Corporate Work (password protected) -->
+    <section class="work-panel" id="work-panel">
+
+      <div id="work-unlocked">
+        <div class="projects-header">
+          <span class="projects-label">Corporate Work</span>
+          <span class="projects-count">0 — 4</span>
+        </div>
+        <div class="projects-grid">
+
+          <a class="project-card" href="project-chase.html" style="text-decoration:none;color:inherit;">
+            <div class="card-header">
+              <span class="card-name">Chase</span>
+              <span class="card-num">Web, Mobile</span>
+            </div>
+            <div class="card-image card-image-chase">
+              <video autoplay loop muted playsinline poster="chase.jpg" width="1600" height="840" aria-label="Chase Wealth Plan">
+                <source src="chase.mp4" type="video/mp4" />
+              </video>
+              <span class="card-achievement"><span class="card-achievement-mark">⊙</span>Smart Money Awards · Best Digital Experience</span>
+            </div>
+            <div class="card-footer">
+              <span class="card-desc">Finance · Wealth</span>
+              <span>↗</span>
+            </div>
+          </a>
+
+          <a class="project-card" href="project-coach.html" style="text-decoration:none;color:inherit;">
+            <div class="card-header">
+              <span class="card-name">Coach</span>
+              <span class="card-num">Web, Mobile</span>
+            </div>
+            <div class="card-image card-image-coach">
+              <img src="https://alisonyinjiazhang.github.io/work/coach.png" alt="Coach E-commerce" />
+              <span class="card-achievement"><span class="card-achievement-mark">⊙</span>+200% conversion</span>
+            </div>
+            <div class="card-footer">
+              <span class="card-desc">E-commerce · Shopping</span>
+              <span>↗</span>
+            </div>
+          </a>
+
+          <a class="project-card" href="project-bitgo.html" style="text-decoration:none;color:inherit;">
+            <div class="card-header">
+              <span class="card-name">BitGo</span>
+              <span class="card-num">Web</span>
+            </div>
+            <div class="card-image">
+              <img src="https://alisonyinjiazhang.github.io/work/bit.png" alt="BitGo Developer Portal" />
+            </div>
+            <div class="card-footer">
+              <span class="card-desc">Fintech · Developer Portal</span>
+              <span>↗</span>
+            </div>
+          </a>
+
+          <a class="project-card" href="project-capitalone.html" style="text-decoration:none;color:inherit;">
+            <div class="card-header">
+              <span class="card-name">Capital One</span>
+              <span class="card-num">Web</span>
+            </div>
+            <div class="card-image card-image-c1">
+              <img src="https://alisonyinjiazhang.github.io/work/c1.png" alt="Capital One L&D" />
+            </div>
+            <div class="card-footer">
+              <span class="card-desc">Fintech · L&D</span>
+              <span>↗</span>
+            </div>
+          </a>
+
+        </div>
+      </div>
+
+    </section>
+
     <!-- Right: Projects -->
     <section class="projects-panel" id="projects-panel" tabindex="-1">
-      <div class="projects-header" id="vibe-coding-projects">
+      <div class="projects-header" id="front-end-prototyping-projects">
         <span class="projects-label">Self-Made Projects</span>
         <span class="projects-count">0 — 5</span>
       </div>
@@ -659,79 +837,6 @@
           </div>
         </a>
       </div>
-    </section>
-
-    <!-- Right: Corporate Work (password protected) -->
-    <section class="work-panel" id="work-panel">
-
-      <div id="work-unlocked">
-        <div class="projects-header">
-          <span class="projects-label">Corporate Work</span>
-          <span class="projects-count">0 — 4</span>
-        </div>
-        <div class="projects-grid">
-
-          <a class="project-card" href="project-bitgo.html" style="text-decoration:none;color:inherit;">
-            <div class="card-header">
-              <span class="card-name">BitGo</span>
-              <span class="card-num">Web</span>
-            </div>
-            <div class="card-image">
-              <img src="https://alisonyinjiazhang.github.io/work/bit.png" alt="BitGo Developer Portal" />
-            </div>
-            <div class="card-footer">
-              <span class="card-desc">Fintech · Developer Portal</span>
-              <span>↗</span>
-            </div>
-          </a>
-
-          <a class="project-card" href="project-chase.html" style="text-decoration:none;color:inherit;">
-            <div class="card-header">
-              <span class="card-name">Chase</span>
-              <span class="card-num">Web, Mobile</span>
-            </div>
-            <div class="card-image card-image-chase">
-              <video autoplay loop muted playsinline poster="chase.jpg" width="1600" height="840" aria-label="Chase Wealth Plan">
-                <source src="chase.mp4" type="video/mp4" />
-              </video>
-            </div>
-            <div class="card-footer">
-              <span class="card-desc">Finance · Wealth</span>
-              <span>↗</span>
-            </div>
-          </a>
-
-          <a class="project-card" href="project-coach.html" style="text-decoration:none;color:inherit;">
-            <div class="card-header">
-              <span class="card-name">Coach</span>
-              <span class="card-num">Web, Mobile</span>
-            </div>
-            <div class="card-image card-image-coach">
-              <img src="https://alisonyinjiazhang.github.io/work/coach.png" alt="Coach E-commerce" />
-            </div>
-            <div class="card-footer">
-              <span class="card-desc">E-commerce · Shopping</span>
-              <span>↗</span>
-            </div>
-          </a>
-
-          <a class="project-card" href="project-capitalone.html" style="text-decoration:none;color:inherit;">
-            <div class="card-header">
-              <span class="card-name">Capital One</span>
-              <span class="card-num">Web</span>
-            </div>
-            <div class="card-image card-image-c1">
-              <img src="https://alisonyinjiazhang.github.io/work/c1.png" alt="Capital One L&D" />
-            </div>
-            <div class="card-footer">
-              <span class="card-desc">Fintech · L&D</span>
-              <span>↗</span>
-            </div>
-          </a>
-
-        </div>
-      </div>
-
     </section>
 
   </main>
@@ -868,6 +973,25 @@
     });
   }
   setupCardMouseSpring();
+
+  // Bio signature: draws itself in, stroke by stroke, the first time it
+  // scrolls into view (About panel is off-screen by default).
+  const sigEl = document.querySelector('.bio-signature');
+  if (sigEl) {
+    if (prefersReducedMotion() || !('IntersectionObserver' in window)) {
+      sigEl.classList.add('is-drawn');
+    } else {
+      const sigObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            sigEl.classList.add('is-drawn');
+            sigObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.3 });
+      sigObserver.observe(sigEl);
+    }
+  }
 
   document.querySelectorAll('.card-image video').forEach(video => {
     if (prefersReducedMotion()) {
@@ -1090,140 +1214,7 @@
       });
     });
   })();
-
-  // About — a real 3D point cloud (perspective-projected, rotating in
-  // XYZ space, not a flat 2D scatter) anchored to the right side of
-  // the panel: a sphere of glowing particles with a hexagram sigil
-  // embedded as a flat plane inside it, echoing the reference gif.
-  (function () {
-    const canvas = document.getElementById('about-particle-canvas');
-    if (!canvas || !window.matchMedia('(prefers-reduced-motion: no-preference)').matches) return;
-    const ctx = canvas.getContext('2d');
-    const container = canvas.closest('.bio-panel');
-    let w = 0, h = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
-    let pointer = { x: 0, y: 0 };
-
-    // Dense star field, distributed through a soft 3D volume (not a
-    // hollow shell) so it reads as a drifting dust cloud rather than
-    // a wireframe ball — matching the reference gif's density.
-    const STAR_FIELD_N = 420;
-    const spherePts = [];
-    for (let i = 0; i < STAR_FIELD_N; i++) {
-      const u = Math.random() * 2 - 1;
-      const theta = Math.random() * Math.PI * 2;
-      const rad = Math.sqrt(1 - u * u) * Math.cbrt(Math.random());
-      spherePts.push({
-        x: rad * Math.cos(theta) * 1.15,
-        y: u * 1.15,
-        z: rad * Math.sin(theta) * 1.15,
-        tw: Math.random() * Math.PI * 2,
-        speed: 0.4 + Math.random() * 0.8,
-        small: true
-      });
-    }
-
-    // The actual Gemini constellation — Castor and Pollux's two
-    // star-chains — as named points connected by lines, like the
-    // reference photo, riding inside the same rotating dust cloud.
-    const constellationPts = [
-      { x: -0.62, y: -0.98, z: 0.15 },  // 0 Castor (head)
-      { x: -0.80, y: -0.46, z: 0.05 },  // 1
-      { x: 0.62, y: -0.18, z: -0.1 },   // 2
-      { x: 0.98, y: 0.10, z: -0.2 },    // 3 Pollux cluster
-      { x: 1.16, y: 0.12, z: -0.22 },   // 4 Pollux cluster
-      { x: -0.28, y: 0.34, z: 0.1 },    // 5
-      { x: 0.10, y: 0.56, z: 0.05 },    // 6
-      { x: 0.68, y: 1.02, z: -0.05 }    // 7 (foot)
-    ].map(p => ({ ...p, tw: Math.random() * Math.PI * 2 }));
-    const constellationLines = [[0, 1], [0, 2], [2, 3], [3, 4], [1, 5], [5, 6], [6, 7]];
-
-    function resize() {
-      const rect = container.getBoundingClientRect();
-      w = rect.width; h = rect.height;
-      if (w === 0 || h === 0) return;
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    }
-    if (window.ResizeObserver) new ResizeObserver(resize).observe(container);
-    else window.addEventListener('resize', resize);
-    resize();
-
-    container.addEventListener('pointermove', (e) => {
-      const rect = container.getBoundingClientRect();
-      pointer.x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
-      pointer.y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
-    });
-
-    const clock0 = performance.now();
-    function frame(now) {
-      const t = (now - clock0) / 1000;
-      if (w > 0 && h > 0) {
-        ctx.clearRect(0, 0, w, h);
-
-        // Place the cloud in the empty right half of the panel —
-        // past the 720px text column — so it fills the unused space.
-        // Skip when the viewport is too narrow for a right stage.
-        const textCol = Math.min(720 + 28, w * 0.55);
-        const gap = w - textCol - 28;
-        if (gap > 180) {
-          const cx = textCol + gap * 0.55;
-          const cy = h * 0.45;
-          const scale = Math.max(120, Math.min(gap * 0.48, h * 0.42, 320));
-          const rotY = t * 0.16 + pointer.x * 0.5;
-          const rotX = 0.28 + pointer.y * 0.25;
-          const focal = 2.6;
-
-          function project(p) {
-            const x1 = p.x * Math.cos(rotY) - p.z * Math.sin(rotY);
-            const z1 = p.x * Math.sin(rotY) + p.z * Math.cos(rotY);
-            const y1 = p.y * Math.cos(rotX) - z1 * Math.sin(rotX);
-            const z2 = p.y * Math.sin(rotX) + z1 * Math.cos(rotX);
-            const depth = focal / (focal + z2);
-            return { sx: cx + x1 * depth * scale, sy: cy + y1 * depth * scale, depth };
-          }
-          // plain dust field — unconnected, like the background stars
-          // in the reference photo (only the constellation gets lines)
-          spherePts.forEach(src => {
-            const pp = project(src);
-            const twinkle = 0.5 + 0.5 * Math.sin(t * src.speed + src.tw);
-            const r = Math.max(0.35, pp.depth * 1.3);
-            ctx.beginPath();
-            ctx.arc(pp.sx, pp.sy, r, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(33, 37, 41, ${Math.min(1, pp.depth * 0.5) * twinkle})`;
-            ctx.fill();
-          });
-
-          // the actual Gemini constellation — bright named stars
-          // connected by thin lines, like the reference photo
-          const starProj = constellationPts.map(project);
-          ctx.lineWidth = 1;
-          ctx.strokeStyle = 'rgba(33, 37, 41, 0.4)';
-          constellationLines.forEach(([ia, ib]) => {
-            const a = starProj[ia], b = starProj[ib];
-            ctx.beginPath();
-            ctx.moveTo(a.sx, a.sy);
-            ctx.lineTo(b.sx, b.sy);
-            ctx.stroke();
-          });
-          constellationPts.forEach((src, i) => {
-            const pp = starProj[i];
-            const twinkle = 0.7 + 0.3 * Math.sin(t * 0.6 + src.tw);
-            const r = Math.max(1.4, pp.depth * 2.6) * twinkle;
-            ctx.beginPath();
-            ctx.arc(pp.sx, pp.sy, r, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(20, 22, 26, ${Math.min(1, pp.depth * 0.85)})`;
-            ctx.shadowColor = 'rgba(60, 65, 75, 0.5)';
-            ctx.shadowBlur = 4;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-          });
-        }
-      }
-      requestAnimationFrame(frame);
-    }
-    requestAnimationFrame(frame);
-  })();
 </script>
+
 </body>
 </html>
